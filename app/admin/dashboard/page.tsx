@@ -1,39 +1,50 @@
 "use client"
 
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Search } from "lucide-react"
-import { useCallback } from "react"
 
 // Define the base URL - this is the only fix needed
 const BASE_URL = "https://v0-fork-of-hh-plumbing-website.vercel.app"
 
-async function getQuoteCount() {
-  const res = await fetch(`${BASE_URL}/api/quotes/count`, { cache: "no-store" })
+export default function DashboardPage() {
+  const [count, setCount] = useState(0)
+  const [loading, setLoading] = useState(true)
 
-  if (!res.ok) {
-    // This will activate the closest `error.js` Error Boundary
-    throw new Error("Failed to fetch data")
-  }
+  // Fetch quote count
+  const getQuoteCount = useCallback(async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/quotes/count`, { cache: "no-store" })
+      if (res.ok) {
+        const data = await res.json()
+        setCount(data.count || 0)
+      }
+    } catch (error) {
+      console.error("Error fetching quote count:", error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
-  return res.json()
-}
+  // Refresh quotes
+  const refreshQuotes = useCallback(async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/refresh-quotes`, { cache: "no-store" })
+      if (res.ok) {
+        alert("Quotes refreshed!")
+        // Refresh the count
+        getQuoteCount()
+      } else {
+        alert("Failed to refresh quotes")
+      }
+    } catch (error) {
+      console.error("Error refreshing quotes:", error)
+      alert("Failed to refresh quotes")
+    }
+  }, [getQuoteCount])
 
-async function refreshQuotes() {
-  const res = await fetch(`${BASE_URL}/api/refresh-quotes`, { cache: "no-store" })
-
-  if (!res.ok) {
-    // This will activate the closest `error.js` Error Boundary
-    throw new Error("Failed to refresh quotes")
-  }
-
-  return res.json()
-}
-
-export default async function DashboardPage() {
-  const { count } = await getQuoteCount()
-
-  // Add this function to debug the database contents
+  // Debug database
   const debugDatabase = useCallback(async () => {
     try {
       console.log("🔍 Debugging database contents...")
@@ -64,6 +75,36 @@ export default async function DashboardPage() {
     }
   }, [])
 
+  // Debug database via debug endpoint
+  const debugDatabaseEndpoint = useCallback(async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/api/debug-quotes`)
+      const data = await response.json()
+      console.log("🔍 Database Debug Info:", data)
+      alert(`Found ${data.debug?.totalQuotes || 0} quotes. Check console for details.`)
+    } catch (error) {
+      console.error("Debug error:", error)
+      alert("Debug failed - check console")
+    }
+  }, [])
+
+  // Load data on mount
+  useEffect(() => {
+    getQuoteCount()
+  }, [getQuoteCount])
+
+  if (loading) {
+    return (
+      <div className="container mx-auto py-10">
+        <Card>
+          <CardContent className="pt-6">
+            <p>Loading...</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="container mx-auto py-10">
       <Card>
@@ -77,30 +118,10 @@ export default async function DashboardPage() {
               <p className="text-sm font-medium">Total Quotes:</p>
               <p className="text-2xl font-bold">{count}</p>
             </div>
-            <Button
-              onClick={async () => {
-                await refreshQuotes()
-                alert("Quotes refreshed!")
-              }}
-              className="mb-4"
-            >
+            <Button onClick={refreshQuotes} className="mb-4">
               Refresh Quotes
             </Button>
-            <Button
-              onClick={async () => {
-                try {
-                  const response = await fetch(`${BASE_URL}/api/debug-quotes`)
-                  const data = await response.json()
-                  console.log("🔍 Database Debug Info:", data)
-                  alert(`Found ${data.debug?.totalQuotes || 0} quotes. Check console for details.`)
-                } catch (error) {
-                  console.error("Debug error:", error)
-                  alert("Debug failed - check console")
-                }
-              }}
-              variant="outline"
-              className="mb-4"
-            >
+            <Button onClick={debugDatabaseEndpoint} variant="outline" className="mb-4">
               🔍 Debug Database
             </Button>
             <button
