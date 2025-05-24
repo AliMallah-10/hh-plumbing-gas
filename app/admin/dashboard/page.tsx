@@ -844,10 +844,15 @@ export default function AdminDashboardPage() {
                   onChange={(e) => setServiceFilter(e.target.value)}
                 >
                   <option value="All">All Services</option>
-                  <option value="Boiler installation">Boiler Installation</option>
-                  <option value="Heat Pump installation">Heat Pump Installation</option>
-                  <option value="Underfloor heating installation">Underfloor Heating</option>
-                  <option value="Cylinder installation">Cylinder Installation</option>
+                  <option value="Boiler Installation">Boiler Installation</option>
+                  <option value="Heat Pump Installation">Heat Pump Installation</option>
+                  <option value="Underfloor Heating Installation">Underfloor Heating</option>
+                  <option value="Cylinder Installation">Cylinder Installation</option>
+                  <option value="Emergency Repairs">Emergency Repairs</option>
+                  <option value="Bathroom Installation">Bathroom Installation</option>
+                  <option value="service1">Test Data - Service 1</option>
+                  <option value="service2">Test Data - Service 2</option>
+                  <option value="service3">Test Data - Service 3</option>
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                   <ChevronDown className="h-4 w-4 text-gray-400" />
@@ -930,17 +935,22 @@ export default function AdminDashboardPage() {
                                 {getServiceIcon(quote.service_type || quote.service || "Unknown")}
                               </div>
                               <div className="text-sm text-gray-900 dark:text-white">
-                                {quote.service_type ||
-                                  quote.service ||
-                                  quote.service_name ||
-                                  quote.serviceType ||
-                                  `DEBUG: ${JSON.stringify({
-                                    service_type: quote.service_type,
-                                    service: quote.service,
-                                    service_name: quote.service_name,
-                                    serviceType: quote.serviceType,
-                                    allKeys: Object.keys(quote).filter((k) => k.toLowerCase().includes("service")),
-                                  })}`}
+                                {(() => {
+                                  const serviceType =
+                                    quote.service_type || quote.service || quote.service_name || quote.serviceType
+
+                                  // Handle test data with proper service names
+                                  const serviceMap: Record<string, string> = {
+                                    service1: "Boiler Installation",
+                                    service2: "Heat Pump Installation",
+                                    service3: "Underfloor Heating Installation",
+                                    service4: "Cylinder Installation",
+                                    service5: "Emergency Repairs",
+                                    service6: "Bathroom Installation",
+                                  }
+
+                                  return serviceMap[serviceType] || serviceType || "Unknown Service"
+                                })()}
                               </div>
                             </div>
                           </td>
@@ -1113,7 +1123,18 @@ export default function AdminDashboardPage() {
                                 {getServiceIcon(selectedQuote.service_type || selectedQuote.service || "Unknown")}
                               </div>
                               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {selectedQuote.service_type || selectedQuote.service || "Unknown Service"}
+                                {(() => {
+                                  const serviceType = selectedQuote.service_type || selectedQuote.service
+                                  const serviceMap: Record<string, string> = {
+                                    service1: "Boiler Installation",
+                                    service2: "Heat Pump Installation",
+                                    service3: "Underfloor Heating Installation",
+                                    service4: "Cylinder Installation",
+                                    service5: "Emergency Repairs",
+                                    service6: "Bathroom Installation",
+                                  }
+                                  return serviceMap[serviceType] || serviceType || "Unknown Service"
+                                })()}
                               </p>
                             </div>
                             <p className="text-sm text-gray-600 dark:text-gray-300">
