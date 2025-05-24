@@ -5,7 +5,6 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { Home, ArrowLeft, Star } from "lucide-react"
-import { QuoteService } from "../lib/supabase"
 import {
   CombiBoilerIcon,
   StandardBoilerIcon,
@@ -496,67 +495,34 @@ export default function GetAQuote() {
     setIsSubmitting(true)
 
     try {
-      console.log("🚀 Submitting quote to Supabase...")
+      console.log("🚀 Submitting quote via API...")
 
-      // Get service name
       const service = serviceTypes.find((s) => s.id === selectedService)?.name || ""
+      const typeName = getTypeOptions().find((t) => t.id === selectedType)?.name || ""
+      const brandName = getAvailableBrands().find((b) => b.id === selectedBrand)?.name || ""
+      const modelName = getModelOptions().find((m) => m.id === selectedModel)?.name || ""
 
-      // Get type name
-      let typeName = ""
-      if (selectedService === "boiler-installation") {
-        typeName = boilerTypes.find((b) => b.id === selectedType)?.name || ""
-      } else if (selectedService === "heat-pump-installation") {
-        typeName = heatPumpTypes.find((b) => b.id === selectedType)?.name || ""
-      } else if (selectedService === "cylinder-installation") {
-        typeName = cylinderTypes.find((b) => b.id === selectedType)?.name || ""
-      } else if (selectedService === "underfloor-heating") {
-        typeName = underfloorTypes.find((b) => b.id === selectedType)?.name || ""
-      }
+      const response = await fetch("/api/quotes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          customer_name: formData.name,
+          customer_email: formData.email,
+          customer_phone: formData.phone,
+          customer_address_line1: formData.address,
+          customer_postcode: formData.postcode,
+          service_type: service,
+          service_subtype: typeName,
+          brand: brandName,
+          model: modelName,
+          starting_price: startingPrice,
+        }),
+      })
 
-      // Get brand name
-      let brandName = ""
-      if (selectedService === "boiler-installation") {
-        brandName = brands.find((b) => b.id === selectedBrand)?.name || ""
-      } else if (selectedService === "heat-pump-installation") {
-        brandName = heatPumpBrands.find((b) => b.id === selectedBrand)?.name || ""
-      } else if (selectedService === "cylinder-installation") {
-        brandName = cylinderBrands.find((b) => b.id === selectedBrand)?.name || ""
-      } else if (selectedService === "underfloor-heating") {
-        brandName = underfloorBrands.find((b) => b.id === selectedBrand)?.name || ""
-      }
-
-      // Get model name
-      const servicePrefix = selectedService?.split("-")[0] || ""
-      let brandModelKey = `${selectedBrand}-${servicePrefix}`
-
-      if (selectedService === "underfloor-heating") {
-        const brand = underfloorBrands.find((b) => b.id === selectedBrand)
-        if (brand) {
-          brandModelKey = `${selectedBrand}-${servicePrefix}`
-        }
-      }
-
-      const models = brandModels[brandModelKey as keyof typeof brandModels] || []
-      const modelName = models.find((model) => model.id === selectedModel)?.name || ""
-
-      // Prepare quote data for Supabase
-      const quoteData = {
-        customer_name: formData.name,
-        customer_email: formData.email,
-        customer_phone: formData.phone,
-        customer_address_line1: formData.address,
-        customer_postcode: formData.postcode,
-        service_type: service,
-        service_subtype: typeName,
-        brand: brandName,
-        model: modelName,
-        starting_price: startingPrice ? startingPrice * 100 : undefined, // Convert to pence
-      }
-
-      console.log("📦 Quote data:", quoteData)
-
-      // Submit to Supabase
-      const result = await QuoteService.createQuote(quoteData)
+      const result = await response.json()
+      console.log("📡 API Response:", result)
 
       if (result.success) {
         console.log("✅ Quote submitted successfully:", result.quote?.quote_reference)
