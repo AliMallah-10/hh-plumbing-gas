@@ -273,12 +273,20 @@ export default function AdminDashboardPage() {
       console.log("🔄 Starting to load quotes from API...")
       console.log("🌐 API URL:", "/api/quotes")
 
-      const response = await fetch("/api/quotes")
+      const response = await fetch("/api/quotes", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+
       console.log("📡 Response status:", response.status)
       console.log("📡 Response ok:", response.ok)
 
       if (!response.ok) {
         console.error("❌ HTTP error! status:", response.status)
+        const errorText = await response.text()
+        console.error("❌ Error response:", errorText)
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
@@ -288,8 +296,12 @@ export default function AdminDashboardPage() {
       console.log("📊 Quotes array:", result.quotes)
       console.log("📊 Quotes length:", result.quotes?.length)
 
-      if (result.success && result.quotes) {
+      if (result.success && Array.isArray(result.quotes)) {
         console.log("✅ Setting quotes in state:", result.quotes.length, "quotes")
+        setQuoteRequests(result.quotes)
+      } else if (Array.isArray(result.quotes)) {
+        // Handle case where success might not be set but quotes exist
+        console.log("⚠️ No success flag but quotes found, setting anyway")
         setQuoteRequests(result.quotes)
       } else {
         console.log("⚠️ No quotes found in API response")
@@ -915,9 +927,11 @@ export default function AdminDashboardPage() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="flex-shrink-0 h-6 w-6 text-gray-500 dark:text-gray-400 mr-2">
-                                {getServiceIcon(quote.service_type)}
+                                {getServiceIcon(quote.service_type || quote.service || "Unknown")}
                               </div>
-                              <div className="text-sm text-gray-900 dark:text-white">{quote.service_type}</div>
+                              <div className="text-sm text-gray-900 dark:text-white">
+                                {quote.service_type || quote.service || "Unknown Service"}
+                              </div>
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -989,11 +1003,22 @@ export default function AdminDashboardPage() {
                     ) : (
                       <tr>
                         <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                          {isClient
-                            ? searchTerm || statusFilter !== "All" || serviceFilter !== "All"
-                              ? "No quotes match your filters."
-                              : "No quote requests found."
-                            : "Loading quotes..."}
+                          {isClient ? (
+                            <>
+                              <div>Debug Info:</div>
+                              <div>Total quotes in state: {quoteRequests.length}</div>
+                              <div>Filtered quotes: {filteredAndSortedRequests.length}</div>
+                              <div>Current page items: {currentItems.length}</div>
+                              <div>Search term: "{searchTerm}"</div>
+                              <div>Status filter: {statusFilter}</div>
+                              <div>Service filter: {serviceFilter}</div>
+                              {searchTerm || statusFilter !== "All" || serviceFilter !== "All"
+                                ? "No quotes match your filters."
+                                : "No quote requests found."}
+                            </>
+                          ) : (
+                            "Loading quotes..."
+                          )}
                         </td>
                       </tr>
                     )}
