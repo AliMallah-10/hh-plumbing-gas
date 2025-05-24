@@ -490,43 +490,81 @@ export default function GetAQuote() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  setIsSubmitting(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
 
-  const payload = {
-    customer_name: formData.name,
-    customer_email: formData.email,
-    customer_phone: formData.phone,
-    customer_postcode: formData.postcode,
-    customer_address_line1: formData.address,
-    service_id: selectedService,
-    type_id: selectedType,
-    brand_id: selectedBrand,
-    model_id: selectedModel,
-  };
+    try {
+      console.log("🚀 Submitting quote via API...")
 
-  try {
-    const res = await fetch("/api/quotes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+      const service = serviceTypes.find((s) => s.id === selectedService)?.name || ""
+      const typeName = getTypeOptions().find((t) => t.id === selectedType)?.name || ""
+      const brandName = getAvailableBrands().find((b) => b.id === selectedBrand)?.name || ""
+      const modelName = getModelOptions().find((m) => m.id === selectedModel)?.name || ""
 
-    if (!res.ok) {
-      const error = await res.text();
-      console.error("❌ Failed to submit quote:", error);
-      alert("Something went wrong submitting the quote.");
-    } else {
-      alert("✅ Quote submitted successfully!");
+      const response = await fetch("/api/quotes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          // Customer information
+          customer_name: formData.name,
+          customer_email: formData.email,
+          customer_phone: formData.phone,
+          customer_address_line1: formData.address,
+          customer_postcode: formData.postcode,
+
+          // New structured IDs
+          service_id: selectedService,
+          type_id: selectedType,
+          brand_id: selectedBrand,
+          model_id: selectedModel,
+
+          // Legacy fields for backward compatibility
+          service_type: service,
+          service_subtype: typeName,
+          brand: brandName,
+          model: modelName,
+
+          starting_price: startingPrice,
+        }),
+      })
+
+      const result = await response.json()
+      console.log("📡 API Response:", result)
+
+      if (result.success) {
+        console.log("✅ Quote submitted successfully:", result.quote?.quote_reference)
+        alert(
+          `Your quote request has been submitted successfully! Your reference number is: ${result.quote?.quote_reference}. We will contact you shortly.`,
+        )
+
+        // Reset form
+        setSelectedService(null)
+        setSelectedType(null)
+        setSelectedBrand(null)
+        setSelectedModel(null)
+        setStartingPrice(null)
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          address: "",
+          postcode: "",
+        })
+        setStep(1)
+      } else {
+        console.error("❌ Error submitting quote:", result.error)
+        alert(`Error submitting quote: ${result.error || "Please try again."}`)
+      }
+    } catch (error) {
+      console.error("❌ Error submitting form:", error)
+      alert("There was an error submitting your quote request. Please try again.")
+    } finally {
+      setIsSubmitting(false)
     }
-  } catch (err) {
-    console.error("❌ Network error:", err);
-    alert("Could not submit the quote. Check your connection.");
-  } finally {
-    setIsSubmitting(false);
   }
-};
 
   const handleBack = () => {
     if (step > 1) {

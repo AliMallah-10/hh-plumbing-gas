@@ -582,13 +582,14 @@ export default function AdminDashboardPage() {
     // First filter the requests
     const filtered = quoteRequests.filter((request) => {
       const matchesSearch =
-        request.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.customer.address.postcode.toLowerCase().includes(searchTerm.toLowerCase())
+        request.customer_name?.toLowerCase().includes(searchTerm.toLowerCase())
+        (request.customer_email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (request.quote_reference || request.id || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (request.customer_postcode || "").toLowerCase().includes(searchTerm.toLowerCase())
 
       const matchesStatus = statusFilter === "All" || request.status === statusFilter
-      const matchesService = serviceFilter === "All" || request.service === serviceFilter
+      const matchesService =
+        serviceFilter === "All" || (request.service_type || request.service || "").includes(serviceFilter)
 
       return matchesSearch && matchesStatus && matchesService
     })
@@ -599,9 +600,9 @@ export default function AdminDashboardPage() {
         let aValue, bValue
 
         // Handle nested properties
-        if (sortConfig.key === "customer.name") {
-          aValue = a.customer.name
-          bValue = b.customer.name
+        if (sortConfig.key === "customer_name") {
+          aValue = a.customer_name
+          bValue = b.customer_name
         } else {
           aValue = a[sortConfig.key as keyof typeof a]
           bValue = b[sortConfig.key as keyof typeof b]
@@ -636,10 +637,24 @@ export default function AdminDashboardPage() {
 
   const handleQuoteClick = useCallback(
     (quote: any) => {
-      setSelectedQuote(quote)
+      // Transform the flat structure to nested for the detail view
+      const transformedQuote = {
+        ...quote,
+        customer: {
+          name: quote.customer_name,
+          email: quote.customer_email,
+          phone: quote.customer_phone,
+          address: {
+            line1: quote.customer_address_line1,
+            line2: quote.customer_address_line2,
+            city: quote.customer_city,
+            postcode: quote.customer_postcode,
+          },
+        },
+      }
+      setSelectedQuote(transformedQuote)
       setIsDetailOpen(true)
-      // Log activity
-      logActivity(`Viewed quote ${quote.id}`)
+      logActivity(`Viewed quote ${quote.quote_reference || quote.id}`)
     },
     [logActivity],
   )
@@ -742,12 +757,7 @@ export default function AdminDashboardPage() {
 
       const data = [
         quote.id,
-        new Date(quote.updated_at).toLocaleDateString("en-UK", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-}),
-
+        new Date(quote.date).toLocaleString(),
         quote.customer.name,
         quote.customer.email,
         quote.customer.phone,
@@ -1017,7 +1027,7 @@ export default function AdminDashboardPage() {
                       <th
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
-                        onClick={() => requestSort("customer.name")}
+                        onClick={() => requestSort("customer_name")}
                       >
                         Customer
                       </th>
@@ -1045,36 +1055,36 @@ export default function AdminDashboardPage() {
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {currentItems.length > 0 ? (
-                      currentItems.map((quote) => (
+                      currentItems.map((request) => (
                         <tr
-                          key={quote.id}
+                          key={request.id}
                           className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
-                          onClick={() => handleQuoteClick(quote)}
+                          onClick={() => handleQuoteClick(request)}
                         >
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                            {quote.id}
+                            {request.id}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                            {formatDate(quote.date)}
+                            {formatDate(request.date)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900 dark:text-white">
-                              {quote.customer.name}
+                              {request.customer_name}
                             </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">{quote.customer.email}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">{request.customer_email}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="flex-shrink-0 h-6 w-6 text-gray-500 dark:text-gray-400 mr-2">
-                                {getServiceIcon(quote.service_type || quote.service_id || "")}
+                                {getServiceIcon(request.service_type || request.service_id || "")}
                               </div>
                               <div className="text-sm text-gray-900 dark:text-white">
-                                {quote.service_type || quote.service_id || "Unknown Service"}
+                                {request.service_type || request.service_id || "Unknown Service"}
                               </div>
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <StatusBadge status={quote.status} />
+                            <StatusBadge status={request.status} />
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div className="relative inline-block text-left" onClick={(e) => e.stopPropagation()}>
@@ -1093,43 +1103,43 @@ export default function AdminDashboardPage() {
                                 >
                                   <button
                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    onClick={() => updateQuoteStatusHandler(quote.id, "Contacted")}
+                                    onClick={() => updateQuoteStatusHandler(request.id, "Contacted")}
                                   >
                                     Mark as Contacted
                                   </button>
                                   <button
                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    onClick={() => updateQuoteStatusHandler(quote.id, "Quoted")}
+                                    onClick={() => updateQuoteStatusHandler(request.id, "Quoted")}
                                   >
                                     Mark as Quoted
                                   </button>
                                   <button
                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    onClick={() => updateQuoteStatusHandler(quote.id, "Scheduled")}
+                                    onClick={() => updateQuoteStatusHandler(request.id, "Scheduled")}
                                   >
                                     Mark as Scheduled
                                   </button>
                                   <button
                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    onClick={() => updateQuoteStatusHandler(quote.id, "Completed")}
+                                    onClick={() => updateQuoteStatusHandler(request.id, "Completed")}
                                   >
                                     Mark as Completed
                                   </button>
                                   <button
                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    onClick={() => updateQuoteStatusHandler(quote.id, "Cancelled")}
+                                    onClick={() => updateQuoteStatusHandler(request.id, "Cancelled")}
                                   >
                                     Mark as Cancelled
                                   </button>
                                   <button
                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    onClick={() => exportQuoteCSV(quote)}
+                                    onClick={() => exportQuoteCSV(request)}
                                   >
                                     Export to CSV
                                   </button>
                                   <button
                                     className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    onClick={() => handleDeleteQuote(quote.id)}
+                                    onClick={() => handleDeleteQuote(request.id)}
                                   >
                                     Delete
                                   </button>
