@@ -930,7 +930,17 @@ export default function AdminDashboardPage() {
                                 {getServiceIcon(quote.service_type || quote.service || "Unknown")}
                               </div>
                               <div className="text-sm text-gray-900 dark:text-white">
-                                {quote.service_type || quote.service || "Unknown Service"}
+                                {quote.service_type ||
+                                  quote.service ||
+                                  quote.service_name ||
+                                  quote.serviceType ||
+                                  `DEBUG: ${JSON.stringify({
+                                    service_type: quote.service_type,
+                                    service: quote.service,
+                                    service_name: quote.service_name,
+                                    serviceType: quote.serviceType,
+                                    allKeys: Object.keys(quote).filter((k) => k.toLowerCase().includes("service")),
+                                  })}`}
                               </div>
                             </div>
                           </td>
