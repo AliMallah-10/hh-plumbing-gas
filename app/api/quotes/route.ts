@@ -30,11 +30,11 @@ export async function POST(request: NextRequest) {
       customer_city: body.customer_city || "London",
       customer_postcode: body.customer_postcode,
 
-      // New structured fields
-      service_id: body.service_id,
-      type_id: body.type_id,
-      brand_id: body.brand_id,
-      model_id: body.model_id,
+      // New structured fields - these can now be null
+      service_id: body.service_id || null,
+      type_id: body.type_id || null,
+      brand_id: body.brand_id || null,
+      model_id: body.model_id || null,
 
       // Legacy fields for backward compatibility
       service_type: body.service_type,
