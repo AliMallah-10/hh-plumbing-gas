@@ -628,13 +628,14 @@ export default function AdminDashboardPage() {
 
   // Get service icon
   const getServiceIcon = useCallback((service: string) => {
-    if (service.toLowerCase().includes("boiler")) {
+    const serviceLower = service.toLowerCase()
+    if (serviceLower.includes("boiler")) {
       return <BoilerIcon />
-    } else if (service.toLowerCase().includes("heat pump")) {
+    } else if (serviceLower.includes("heat pump")) {
       return <HeatPumpIcon />
-    } else if (service.toLowerCase().includes("underfloor")) {
+    } else if (serviceLower.includes("underfloor")) {
       return <UnderfloorHeatingIcon />
-    } else if (service.toLowerCase().includes("cylinder")) {
+    } else if (serviceLower.includes("cylinder")) {
       return <CylinderIcon />
     }
     return null
