@@ -484,12 +484,9 @@ export default function AdminDashboardPage() {
     (quote: any) => {
       console.log("Selected quote data:", quote)
 
-      // Show quote data in alert for debugging
-      alert(`Quote Data Structure:\n\n${JSON.stringify(quote, null, 2)}`)
-
-      // Comment out these lines temporarily for debugging
-      // setSelectedQuote(quote)
-      // setIsDetailOpen(true)
+      // Set the selected quote and open the modal
+      setSelectedQuote(quote)
+      setIsDetailOpen(true)
 
       // Log activity
       logActivity(`Viewed quote ${quote.id}`)
