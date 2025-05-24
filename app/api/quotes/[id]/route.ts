@@ -20,30 +20,46 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 // PATCH - Update quote status
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    console.log("🔄 PATCH request received for quote ID:", params.id)
+
     const body = await request.json()
+    console.log("📦 Request body:", body)
+
     const { status } = body
 
     if (!status) {
+      console.error("❌ No status provided in request")
       return NextResponse.json({ success: false, error: "Status is required" }, { status: 400 })
     }
 
     const validStatuses = ["New", "Contacted", "Quoted", "Scheduled", "Completed", "Cancelled"]
     if (!validStatuses.includes(status)) {
+      console.error("❌ Invalid status:", status)
       return NextResponse.json({ success: false, error: "Invalid status" }, { status: 400 })
     }
 
+    console.log("✅ Valid status provided:", status)
+    console.log("🔍 Attempting to update quote with ID:", params.id)
+
     const success = await QuoteDatabase.updateQuoteStatus(params.id, status)
+    console.log("📊 Update result:", success)
 
     if (success) {
+      console.log("✅ Quote status updated successfully")
       return NextResponse.json({
         success: true,
         message: `Quote status updated to ${status}`,
       })
     } else {
-      return NextResponse.json({ success: false, error: "Failed to update quote status" }, { status: 500 })
+      console.error("❌ Failed to update quote status - quote not found or update failed")
+      return NextResponse.json({ success: false, error: "Quote not found or update failed" }, { status: 404 })
     }
   } catch (error) {
-    console.error("Error updating quote:", error)
+    console.error("❌ Error updating quote:", error)
+    console.error("Error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : "No stack trace",
+    })
     return NextResponse.json({ success: false, error: "Failed to update quote" }, { status: 500 })
   }
 }
