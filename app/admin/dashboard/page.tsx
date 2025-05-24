@@ -5,8 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Search } from "lucide-react"
 import { useCallback } from "react"
 
+// Define the base URL
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || ""
+
 async function getQuoteCount() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/quotes/count`, { cache: "no-store" })
+  const res = await fetch(`${BASE_URL}/api/quotes/count`, { cache: "no-store" })
 
   if (!res.ok) {
     // This will activate the closest `error.js` Error Boundary
@@ -17,7 +20,7 @@ async function getQuoteCount() {
 }
 
 async function refreshQuotes() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/refresh-quotes`, { cache: "no-store" })
+  const res = await fetch(`${BASE_URL}/api/refresh-quotes`, { cache: "no-store" })
 
   if (!res.ok) {
     // This will activate the closest `error.js` Error Boundary
