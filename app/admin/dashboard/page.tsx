@@ -462,8 +462,15 @@ export default function AdminDashboardPage() {
 
   const handleQuoteClick = useCallback(
     (quote: any) => {
-      setSelectedQuote(quote)
-      setIsDetailOpen(true)
+      console.log("Selected quote data:", quote)
+
+      // Show quote data in alert for debugging
+      alert(`Quote Data Structure:\n\n${JSON.stringify(quote, null, 2)}`)
+
+      // Comment out these lines temporarily for debugging
+      // setSelectedQuote(quote)
+      // setIsDetailOpen(true)
+
       // Log activity
       logActivity(`Viewed quote ${quote.id}`)
     },
@@ -1044,26 +1051,25 @@ export default function AdminDashboardPage() {
                       </div>
 
                       <div>
-                        \`\`\`tsx
                         <div>
                           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Quote Details</h3>
                           <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                             <div className="flex items-center mb-2">
                               <div className="flex-shrink-0 h-6 w-6 text-gray-500 dark:text-gray-400 mr-2">
-                                {getServiceIcon(selectedQuote.service_type)}
+                                {getServiceIcon(selectedQuote.service_type || selectedQuote.service || "Unknown")}
                               </div>
                               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {selectedQuote.service_type}
+                                {selectedQuote.service_type || selectedQuote.service || "Unknown Service"}
                               </p>
                             </div>
                             <p className="text-sm text-gray-600 dark:text-gray-300">
-                              Type: {selectedQuote.service_subtype || "Not specified"}
+                              Type: {selectedQuote.service_subtype || selectedQuote.subtype || "Not specified"}
                             </p>
                             <p className="text-sm text-gray-600 dark:text-gray-300">
-                              Brand: {selectedQuote.brand || "Not specified"}
+                              Brand: {selectedQuote.brand || selectedQuote.preferred_brand || "Not specified"}
                             </p>
                             <p className="text-sm text-gray-600 dark:text-gray-300">
-                              Model: {selectedQuote.model || "Not specified"}
+                              Model: {selectedQuote.model || selectedQuote.preferred_model || "Not specified"}
                             </p>
                             <p className="text-sm font-medium text-gray-900 dark:text-white mt-2">
                               Starting from £
@@ -1074,15 +1080,36 @@ export default function AdminDashboardPage() {
                                 Submitted on: {formatDate(selectedQuote.created_at)}
                               </p>
                               <p className="text-sm text-gray-600 dark:text-gray-300">
-                                Reference: {selectedQuote.quote_reference}
+                                Reference: {selectedQuote.quote_reference || selectedQuote.id}
                               </p>
                               <div className="mt-2">
                                 <StatusBadge status={selectedQuote.status} />
                               </div>
+
+                              {/* Debug info - remove this after fixing */}
+                              <div className="mt-6 p-4 bg-yellow-200 dark:bg-yellow-800 border-2 border-yellow-400 rounded-lg">
+                                <h4 className="text-lg font-bold text-black dark:text-white mb-2">
+                                  🐛 DEBUG INFO - QUOTE DATA STRUCTURE
+                                </h4>
+                                <div className="bg-white dark:bg-gray-900 p-3 rounded border max-h-64 overflow-y-auto">
+                                  <pre className="text-xs text-black dark:text-white whitespace-pre-wrap">
+                                    {JSON.stringify(selectedQuote, null, 2)}
+                                  </pre>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                        \`\`\`
+                      </div>
+                    </div>
+
+                    {/* LARGE DEBUG SECTION - MOVED UP FOR VISIBILITY */}
+                    <div className="mt-6 p-6 bg-red-500 border-4 border-red-700 rounded-lg">
+                      <h4 className="text-2xl font-bold text-white mb-4">🚨 DEBUG INFO - QUOTE DATA STRUCTURE 🚨</h4>
+                      <div className="bg-white p-4 rounded border max-h-96 overflow-y-auto">
+                        <pre className="text-sm text-black whitespace-pre-wrap">
+                          {JSON.stringify(selectedQuote, null, 2)}
+                        </pre>
                       </div>
                     </div>
 
@@ -1190,7 +1217,6 @@ export default function AdminDashboardPage() {
               <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Recent Activity</h3>
                 <div className="space-y-4">
-                  \`\`\`tsx
                   {quoteRequests
                     .slice(0, 5)
                     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -1209,7 +1235,6 @@ export default function AdminDashboardPage() {
                         </div>
                       </div>
                     ))}
-                  \`\`\`
                 </div>
               </div>
             </div>
