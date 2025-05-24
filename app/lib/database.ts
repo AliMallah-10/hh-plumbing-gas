@@ -1,7 +1,7 @@
 import { promises as fs } from "fs"
 import path from "path"
 
-// Database file path
+// Database file path - use a more reliable location
 const DB_PATH = path.join(process.cwd(), "data", "quotes.json")
 
 // Ensure data directory exists
@@ -9,7 +9,9 @@ async function ensureDataDirectory() {
   const dataDir = path.dirname(DB_PATH)
   try {
     await fs.access(dataDir)
+    console.log("Data directory exists:", dataDir)
   } catch {
+    console.log("Creating data directory:", dataDir)
     await fs.mkdir(dataDir, { recursive: true })
   }
 }
@@ -18,29 +20,37 @@ async function ensureDataDirectory() {
 async function initializeDatabase() {
   try {
     await fs.access(DB_PATH)
+    console.log("Database file exists:", DB_PATH)
   } catch {
+    console.log("Creating database file:", DB_PATH)
     await ensureDataDirectory()
-    await fs.writeFile(DB_PATH, JSON.stringify({ quotes: [] }, null, 2))
+    const initialData = { quotes: [], version: "1.0", created: new Date().toISOString() }
+    await fs.writeFile(DB_PATH, JSON.stringify(initialData, null, 2))
+    console.log("Database file created successfully")
   }
 }
 
-// Read database
+// Read database with better error handling
 async function readDatabase() {
-  await initializeDatabase()
   try {
+    await initializeDatabase()
     const data = await fs.readFile(DB_PATH, "utf-8")
-    return JSON.parse(data)
+    const parsed = JSON.parse(data)
+    console.log("Database read successfully, quotes count:", parsed.quotes?.length || 0)
+    return parsed
   } catch (error) {
     console.error("Error reading database:", error)
-    return { quotes: [] }
+    // Return default structure if read fails
+    return { quotes: [], version: "1.0", created: new Date().toISOString() }
   }
 }
 
-// Write database
+// Write database with better error handling
 async function writeDatabase(data: any) {
-  await ensureDataDirectory()
   try {
+    await ensureDataDirectory()
     await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2))
+    console.log("Database written successfully")
     return true
   } catch (error) {
     console.error("Error writing database:", error)
@@ -86,7 +96,10 @@ export class QuoteDatabase {
     quoteData: Omit<DatabaseQuote, "id" | "createdAt" | "updatedAt">,
   ): Promise<DatabaseQuote | null> {
     try {
+      console.log("Creating new quote with data:", quoteData)
+
       const db = await readDatabase()
+      console.log("Current database state:", { quotesCount: db.quotes?.length || 0 })
 
       const newQuote: DatabaseQuote = {
         ...quoteData,
@@ -95,14 +108,23 @@ export class QuoteDatabase {
         updatedAt: new Date().toISOString(),
       }
 
+      console.log("Generated new quote:", newQuote)
+
+      // Ensure quotes array exists
+      if (!db.quotes) {
+        db.quotes = []
+      }
+
       db.quotes.unshift(newQuote) // Add to beginning
 
       const success = await writeDatabase(db)
       if (success) {
         console.log("Quote created successfully:", newQuote.id)
         return newQuote
+      } else {
+        console.error("Failed to write quote to database")
+        return null
       }
-      return null
     } catch (error) {
       console.error("Error creating quote:", error)
       return null
@@ -124,7 +146,7 @@ export class QuoteDatabase {
   static async getQuoteById(id: string): Promise<DatabaseQuote | null> {
     try {
       const db = await readDatabase()
-      const quote = db.quotes.find((q: DatabaseQuote) => q.id === id)
+      const quote = db.quotes?.find((q: DatabaseQuote) => q.id === id)
       return quote || null
     } catch (error) {
       console.error("Error getting quote by ID:", error)
@@ -136,7 +158,7 @@ export class QuoteDatabase {
   static async updateQuoteStatus(id: string, status: DatabaseQuote["status"]): Promise<boolean> {
     try {
       const db = await readDatabase()
-      const quoteIndex = db.quotes.findIndex((q: DatabaseQuote) => q.id === id)
+      const quoteIndex = db.quotes?.findIndex((q: DatabaseQuote) => q.id === id) ?? -1
 
       if (quoteIndex === -1) {
         console.error("Quote not found:", id)
@@ -161,8 +183,8 @@ export class QuoteDatabase {
   static async deleteQuote(id: string): Promise<boolean> {
     try {
       const db = await readDatabase()
-      const initialLength = db.quotes.length
-      db.quotes = db.quotes.filter((q: DatabaseQuote) => q.id !== id)
+      const initialLength = db.quotes?.length || 0
+      db.quotes = db.quotes?.filter((q: DatabaseQuote) => q.id !== id) || []
 
       if (db.quotes.length === initialLength) {
         console.error("Quote not found for deletion:", id)
@@ -254,6 +276,25 @@ export class QuoteDatabase {
     } catch (error) {
       console.error("Error getting statistics:", error)
       return null
+    }
+  }
+
+  // Test database connection
+  static async testConnection(): Promise<{ success: boolean; message: string; path?: string }> {
+    try {
+      await initializeDatabase()
+      const db = await readDatabase()
+      return {
+        success: true,
+        message: `Database connection successful. Found ${db.quotes?.length || 0} quotes.`,
+        path: DB_PATH,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: `Database connection failed: ${error}`,
+        path: DB_PATH,
+      }
     }
   }
 }

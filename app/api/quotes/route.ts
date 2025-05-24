@@ -4,11 +4,15 @@ import { QuoteDatabase, type DatabaseQuote } from "@/app/lib/database"
 // GET - Fetch all quotes or search
 export async function GET(request: NextRequest) {
   try {
+    console.log("GET /api/quotes - Starting request")
+
     const { searchParams } = new URL(request.url)
     const search = searchParams.get("search")
     const status = searchParams.get("status")
     const startDate = searchParams.get("startDate")
     const endDate = searchParams.get("endDate")
+
+    console.log("Search params:", { search, status, startDate, endDate })
 
     let quotes: DatabaseQuote[]
 
@@ -22,28 +26,47 @@ export async function GET(request: NextRequest) {
       quotes = await QuoteDatabase.getAllQuotes()
     }
 
+    console.log(`GET /api/quotes - Returning ${quotes.length} quotes`)
+
     return NextResponse.json({
       success: true,
       quotes,
       count: quotes.length,
     })
   } catch (error) {
-    console.error("Error fetching quotes:", error)
-    return NextResponse.json({ success: false, error: "Failed to fetch quotes" }, { status: 500 })
+    console.error("Error in GET /api/quotes:", error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to fetch quotes",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    )
   }
 }
 
 // POST - Create new quote
 export async function POST(request: NextRequest) {
   try {
+    console.log("POST /api/quotes - Starting request")
+
     const body = await request.json()
+    console.log("Request body:", body)
 
     // Validate required fields
     const requiredFields = ["name", "email", "phone", "address", "postcode", "serviceType"]
-    for (const field of requiredFields) {
-      if (!body[field]) {
-        return NextResponse.json({ success: false, error: `Missing required field: ${field}` }, { status: 400 })
-      }
+    const missingFields = requiredFields.filter((field) => !body[field])
+
+    if (missingFields.length > 0) {
+      console.error("Missing required fields:", missingFields)
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Missing required fields: ${missingFields.join(", ")}`,
+        },
+        { status: 400 },
+      )
     }
 
     // Format quote data
@@ -67,19 +90,36 @@ export async function POST(request: NextRequest) {
       status: "New" as const,
     }
 
+    console.log("Formatted quote data:", quoteData)
+
     const newQuote = await QuoteDatabase.createQuote(quoteData)
 
     if (newQuote) {
+      console.log("Quote created successfully:", newQuote.id)
       return NextResponse.json({
         success: true,
         quote: newQuote,
         message: "Quote created successfully",
       })
     } else {
-      return NextResponse.json({ success: false, error: "Failed to create quote" }, { status: 500 })
+      console.error("Failed to create quote - database returned null")
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Failed to create quote - database error",
+        },
+        { status: 500 },
+      )
     }
   } catch (error) {
-    console.error("Error creating quote:", error)
-    return NextResponse.json({ success: false, error: "Failed to create quote" }, { status: 500 })
+    console.error("Error in POST /api/quotes:", error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to create quote",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    )
   }
 }
