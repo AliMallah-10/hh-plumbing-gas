@@ -1,16 +1,40 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { QuoteDatabase } from "@/app/lib/database"
+import { createClient } from "@supabase/supabase-js"
+
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+let supabase: any = null
+
+try {
+  if (supabaseUrl && supabaseServiceKey) {
+    supabase = createClient(supabaseUrl, supabaseServiceKey)
+  }
+} catch (error) {
+  console.log("Supabase not configured, using local database only")
+}
 
 // GET - Fetch single quote
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const quote = await QuoteDatabase.getQuoteById(params.id)
+    // Try Supabase first if available
+    if (supabase) {
+      const { data: supabaseQuote, error } = await supabase.from("quotes").select("*").eq("id", params.id).single()
 
-    if (quote) {
-      return NextResponse.json({ success: true, quote })
-    } else {
-      return NextResponse.json({ success: false, error: "Quote not found" }, { status: 404 })
+      if (supabaseQuote && !error) {
+        return NextResponse.json({ success: true, quote: supabaseQuote })
+      }
     }
+
+    // Fallback to local database
+    const localQuote = await QuoteDatabase.getQuoteById(params.id)
+    if (localQuote) {
+      return NextResponse.json({ success: true, quote: localQuote })
+    }
+
+    return NextResponse.json({ success: false, error: "Quote not found" }, { status: 404 })
   } catch (error) {
     console.error("Error fetching quote:", error)
     return NextResponse.json({ success: false, error: "Failed to fetch quote" }, { status: 500 })
@@ -41,17 +65,49 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     console.log("✅ Valid status provided:", status)
     console.log("🔍 Attempting to update quote with ID:", params.id)
 
+    // Try updating in Supabase first (if it's a UUID format and Supabase is available)
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(params.id)
+
+    if (isUUID && supabase) {
+      console.log("🔍 ID looks like UUID, trying Supabase...")
+
+      try {
+        const { data, error } = await supabase
+          .from("quotes")
+          .update({
+            status: status,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", params.id)
+          .select()
+
+        if (!error && data && data.length > 0) {
+          console.log("✅ Quote updated successfully in Supabase")
+          return NextResponse.json({
+            success: true,
+            message: `Quote status updated to ${status}`,
+          })
+        } else {
+          console.log("⚠️ Supabase update failed or no rows affected:", error)
+        }
+      } catch (supabaseError) {
+        console.log("⚠️ Supabase error:", supabaseError)
+      }
+    }
+
+    // Fallback to local database
+    console.log("🔍 Trying local database...")
     const success = await QuoteDatabase.updateQuoteStatus(params.id, status)
-    console.log("📊 Update result:", success)
+    console.log("📊 Local database update result:", success)
 
     if (success) {
-      console.log("✅ Quote status updated successfully")
+      console.log("✅ Quote status updated successfully in local database")
       return NextResponse.json({
         success: true,
         message: `Quote status updated to ${status}`,
       })
     } else {
-      console.error("❌ Failed to update quote status - quote not found or update failed")
+      console.error("❌ Failed to update quote status in both databases")
       return NextResponse.json({ success: false, error: "Quote not found or update failed" }, { status: 404 })
     }
   } catch (error) {
@@ -67,14 +123,42 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 // DELETE - Delete quote
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    console.log("🗑️ DELETE request received for quote ID:", params.id)
+
+    // Try deleting from Supabase first (if it's a UUID format and Supabase is available)
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(params.id)
+
+    if (isUUID && supabase) {
+      console.log("🔍 ID looks like UUID, trying Supabase...")
+
+      try {
+        const { error } = await supabase.from("quotes").delete().eq("id", params.id)
+
+        if (!error) {
+          console.log("✅ Quote deleted successfully from Supabase")
+          return NextResponse.json({
+            success: true,
+            message: "Quote deleted successfully",
+          })
+        } else {
+          console.log("⚠️ Supabase delete failed:", error)
+        }
+      } catch (supabaseError) {
+        console.log("⚠️ Supabase error:", supabaseError)
+      }
+    }
+
+    // Fallback to local database
     const success = await QuoteDatabase.deleteQuote(params.id)
 
     if (success) {
+      console.log("✅ Quote deleted successfully from local database")
       return NextResponse.json({
         success: true,
         message: "Quote deleted successfully",
       })
     } else {
+      console.error("❌ Failed to delete quote from both databases")
       return NextResponse.json({ success: false, error: "Failed to delete quote" }, { status: 500 })
     }
   } catch (error) {
