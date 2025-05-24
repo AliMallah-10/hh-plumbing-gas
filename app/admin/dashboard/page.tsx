@@ -631,7 +631,7 @@ export default function AdminDashboardPage() {
   const serviceDistribution = useMemo(() => {
     const services: Record<string, number> = {}
     quoteRequests.forEach((quote) => {
-      const service = quote.service
+      const service = quote.service_type
       services[service] = (services[service] || 0) + 1
     })
 
@@ -1044,34 +1044,45 @@ export default function AdminDashboardPage() {
                       </div>
 
                       <div>
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Quote Details</h3>
-                        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                          <div className="flex items-center mb-2">
-                            <div className="flex-shrink-0 h-6 w-6 text-gray-500 dark:text-gray-400 mr-2">
-                              {getServiceIcon(selectedQuote.service_type)}
+                        \`\`\`tsx
+                        <div>
+                          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Quote Details</h3>
+                          <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                            <div className="flex items-center mb-2">
+                              <div className="flex-shrink-0 h-6 w-6 text-gray-500 dark:text-gray-400 mr-2">
+                                {getServiceIcon(selectedQuote.service_type)}
+                              </div>
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                {selectedQuote.service_type}
+                              </p>
                             </div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              {selectedQuote.service_type}
-                            </p>
-                          </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
-                            Type: {selectedQuote.service_subtype}
-                          </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">Brand: {selectedQuote.brand}</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">Model: {selectedQuote.model}</p>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white mt-2">
-                            Starting from £
-                            {selectedQuote.starting_price ? (selectedQuote.starting_price / 100).toFixed(2) : "TBC"}
-                          </p>
-                          <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
                             <p className="text-sm text-gray-600 dark:text-gray-300">
-                              Submitted on: {formatDate(selectedQuote.created_at)}
+                              Type: {selectedQuote.service_subtype || "Not specified"}
                             </p>
-                            <div className="mt-2">
-                              <StatusBadge status={selectedQuote.status} />
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                              Brand: {selectedQuote.brand || "Not specified"}
+                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                              Model: {selectedQuote.model || "Not specified"}
+                            </p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white mt-2">
+                              Starting from £
+                              {selectedQuote.starting_price ? (selectedQuote.starting_price / 100).toFixed(2) : "TBC"}
+                            </p>
+                            <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+                              <p className="text-sm text-gray-600 dark:text-gray-300">
+                                Submitted on: {formatDate(selectedQuote.created_at)}
+                              </p>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">
+                                Reference: {selectedQuote.quote_reference}
+                              </p>
+                              <div className="mt-2">
+                                <StatusBadge status={selectedQuote.status} />
+                              </div>
                             </div>
                           </div>
                         </div>
+                        \`\`\`
                       </div>
                     </div>
 
@@ -1179,24 +1190,26 @@ export default function AdminDashboardPage() {
               <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Recent Activity</h3>
                 <div className="space-y-4">
+                  \`\`\`tsx
                   {quoteRequests
                     .slice(0, 5)
-                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                     .map((quote) => (
                       <div key={quote.id} className="flex items-start">
                         <div className="flex-shrink-0 h-5 w-5 text-gray-500 dark:text-gray-400 mr-3 mt-1">
-                          {getServiceIcon(quote.service)}
+                          {getServiceIcon(quote.service_type)}
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {quote.customer.name} - {quote.service}
+                            {quote.customer_name} - {quote.service_type}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {formatDate(quote.date)} - <StatusBadge status={quote.status} />
+                            {formatDate(quote.created_at)} - <StatusBadge status={quote.status} />
                           </p>
                         </div>
                       </div>
                     ))}
+                  \`\`\`
                 </div>
               </div>
             </div>
