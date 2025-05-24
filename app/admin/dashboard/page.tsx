@@ -628,17 +628,27 @@ export default function AdminDashboardPage() {
 
   // Get service icon
   const getServiceIcon = useCallback((service: string) => {
+    console.log("🔍 getServiceIcon called with:", service)
     const serviceLower = service.toLowerCase()
+    console.log("🔍 serviceLower:", serviceLower)
+
     if (serviceLower.includes("boiler")) {
+      console.log("✅ Returning BoilerIcon")
       return <BoilerIcon />
     } else if (serviceLower.includes("heat pump")) {
+      console.log("✅ Returning HeatPumpIcon")
       return <HeatPumpIcon />
     } else if (serviceLower.includes("underfloor")) {
+      console.log("✅ Returning UnderfloorHeatingIcon")
       return <UnderfloorHeatingIcon />
     } else if (serviceLower.includes("cylinder")) {
+      console.log("✅ Returning CylinderIcon")
       return <CylinderIcon />
     }
-    return null
+
+    console.log("❌ No icon found, returning fallback")
+    // Return a fallback icon instead of null
+    return <AlertCircle className="w-6 h-6" />
   }, [])
 
   // Format date
