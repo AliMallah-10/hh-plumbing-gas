@@ -11,6 +11,8 @@ export interface Quote {
   quote_reference: string
   created_at: string
   updated_at: string
+
+  // Customer information
   customer_name: string
   customer_email: string
   customer_phone: string
@@ -18,16 +20,37 @@ export interface Quote {
   customer_address_line2?: string
   customer_city: string
   customer_postcode: string
-  service_type: string
+
+  // Service details (new structured fields)
+  service_id?: string
+  type_id?: string
+  brand_id?: string
+  model_id?: string
+
+  // Legacy fields for backward compatibility
+  service_type?: string
   service_subtype?: string
   brand?: string
   model?: string
+
+  // Pricing
   starting_price?: number
-  status: "New" | "Contacted" | "Quoted" | "Scheduled" | "Completed" | "Cancelled"
-  notes?: string
   quote_amount?: number
+
+  // Status and workflow
+  status: "New" | "Contacted" | "Quoted" | "Scheduled" | "Completed" | "Cancelled"
+  priority?: "Low" | "Normal" | "High" | "Urgent"
+
+  // Additional information
+  notes?: string
+  internal_notes?: string
   scheduled_date?: string
   completion_date?: string
+
+  // Contact tracking
+  last_contacted?: string
+  contact_attempts?: number
+  preferred_contact_method?: "phone" | "email" | "text"
 }
 
 // Database operations
@@ -48,7 +71,11 @@ export class QuoteService {
     customer_address_line2?: string
     customer_city?: string
     customer_postcode: string
-    service_type: string
+    service_id?: string
+    type_id?: string
+    brand_id?: string
+    model_id?: string
+    service_type?: string
     service_subtype?: string
     brand?: string
     model?: string
@@ -69,12 +96,19 @@ export class QuoteService {
             customer_address_line2: quoteData.customer_address_line2 || null,
             customer_city: quoteData.customer_city || "London",
             customer_postcode: quoteData.customer_postcode,
-            service_type: quoteData.service_type,
+            service_id: quoteData.service_id || null,
+            type_id: quoteData.type_id || null,
+            brand_id: quoteData.brand_id || null,
+            model_id: quoteData.model_id || null,
+            service_type: quoteData.service_type || null,
             service_subtype: quoteData.service_subtype || null,
             brand: quoteData.brand || null,
             model: quoteData.model || null,
             starting_price: quoteData.starting_price || null,
             status: "New",
+            priority: "Normal",
+            contact_attempts: 0,
+            preferred_contact_method: "phone",
           },
         ])
         .select()

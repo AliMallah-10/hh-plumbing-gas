@@ -508,15 +508,25 @@ export default function GetAQuote() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          // Customer information
           customer_name: formData.name,
           customer_email: formData.email,
           customer_phone: formData.phone,
           customer_address_line1: formData.address,
           customer_postcode: formData.postcode,
+
+          // New structured IDs
+          service_id: selectedService,
+          type_id: selectedType,
+          brand_id: selectedBrand,
+          model_id: selectedModel,
+
+          // Legacy fields for backward compatibility
           service_type: service,
           service_subtype: typeName,
           brand: brandName,
           model: modelName,
+
           starting_price: startingPrice,
         }),
       })

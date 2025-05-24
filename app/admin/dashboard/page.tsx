@@ -297,8 +297,10 @@ export default function AdminDashboardPage() {
               },
             },
             service: "Boiler installation",
-            type: "Combi Boiler",
-            option: "Vaillant",
+            service_type: "Boiler installation",
+            service_subtype: "Combi Boiler",
+            brand: "Vaillant",
+            model: "EcoTec Pro 28",
             price: "Starting from £1,750",
             status: "New",
           },
@@ -317,8 +319,10 @@ export default function AdminDashboardPage() {
               },
             },
             service: "Heat Pump installation",
-            type: "Air Source Heat Pump",
-            option: "Mitsubishi",
+            service_type: "Heat Pump installation",
+            service_subtype: "Air Source Heat Pump",
+            brand: "Mitsubishi",
+            model: "Ecodan",
             price: "Starting from £3,800",
             status: "Contacted",
           },
@@ -337,8 +341,10 @@ export default function AdminDashboardPage() {
               },
             },
             service: "Underfloor heating installation",
-            type: "Wet Underfloor Heating",
-            option: "Premium Package",
+            service_type: "Underfloor heating installation",
+            service_subtype: "Wet Underfloor Heating",
+            brand: "Uponor",
+            model: "Minitec",
             price: "Starting from £80/m²",
             status: "Quoted",
           },
@@ -357,8 +363,10 @@ export default function AdminDashboardPage() {
               },
             },
             service: "Cylinder installation",
-            type: "Indirect Cylinder",
-            option: "Megaflo",
+            service_type: "Cylinder installation",
+            service_subtype: "Indirect Cylinder",
+            brand: "Megaflo",
+            model: "Eco Plus",
             price: "Starting from £950",
             status: "Scheduled",
           },
@@ -377,8 +385,10 @@ export default function AdminDashboardPage() {
               },
             },
             service: "Boiler installation",
-            type: "System Boiler",
-            option: "Worcester Bosch",
+            service_type: "Boiler installation",
+            service_subtype: "System Boiler",
+            brand: "Worcester Bosch",
+            model: "Greenstar 8000",
             price: "Starting from £2,150",
             status: "Completed",
           },
@@ -397,8 +407,10 @@ export default function AdminDashboardPage() {
               },
             },
             service: "Underfloor heating installation",
-            type: "Electric Underfloor Heating",
-            option: "Standard Mat System",
+            service_type: "Underfloor heating installation",
+            service_subtype: "Electric Underfloor Heating",
+            brand: "Warmup",
+            model: "StickyMat",
             price: "Starting from £40/m²",
             status: "Cancelled",
           },
@@ -417,8 +429,10 @@ export default function AdminDashboardPage() {
               },
             },
             service: "Heat Pump installation",
-            type: "Ground Source Heat Pump",
-            option: "NIBE",
+            service_type: "Heat Pump installation",
+            service_subtype: "Ground Source Heat Pump",
+            brand: "NIBE",
+            model: "F1255",
             price: "Starting from £5,500",
             status: "New",
           },
@@ -437,8 +451,10 @@ export default function AdminDashboardPage() {
               },
             },
             service: "Cylinder installation",
-            type: "Direct Cylinder",
-            option: "Gledhill",
+            service_type: "Cylinder installation",
+            service_subtype: "Direct Cylinder",
+            brand: "Gledhill",
+            model: "Stainless Lite",
             price: "Starting from £700",
             status: "Quoted",
           },
@@ -1045,9 +1061,11 @@ export default function AdminDashboardPage() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="flex-shrink-0 h-6 w-6 text-gray-500 dark:text-gray-400 mr-2">
-                                {getServiceIcon(quote.service)}
+                                {getServiceIcon(quote.service_type || quote.service_id || "")}
                               </div>
-                              <div className="text-sm text-gray-900 dark:text-white">{quote.service}</div>
+                              <div className="text-sm text-gray-900 dark:text-white">
+                                {quote.service_type || quote.service_id || "Unknown Service"}
+                              </div>
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -1204,12 +1222,21 @@ export default function AdminDashboardPage() {
                         <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                           <div className="flex items-center mb-2">
                             <div className="flex-shrink-0 h-6 w-6 text-gray-500 dark:text-gray-400 mr-2">
-                              {getServiceIcon(selectedQuote.service)}
+                              {getServiceIcon(selectedQuote.service_type || selectedQuote.service_id || "")}
                             </div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">{selectedQuote.service}</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {selectedQuote.service_type || selectedQuote.service_id || "Unknown Service"}
+                            </p>
                           </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">Type: {selectedQuote.type}</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">Option: {selectedQuote.option}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
+                            Type: {selectedQuote.service_subtype || selectedQuote.type_id || "Not specified"}
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
+                            Brand: {selectedQuote.brand || selectedQuote.brand_id || "Not specified"}
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
+                            Model: {selectedQuote.model || selectedQuote.model_id || "Not specified"}
+                          </p>
                           <p className="text-sm font-medium text-gray-900 dark:text-white mt-2">
                             {selectedQuote.price}
                           </p>

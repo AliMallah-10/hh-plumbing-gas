@@ -19,20 +19,34 @@ export async function POST(request: NextRequest) {
     const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase()
     const quoteReference = `QR-${dateStr}-${randomStr}`
 
-    // Prepare quote data
+    // Prepare quote data for new structure
     const quoteData = {
       quote_reference: quoteReference,
       customer_name: body.customer_name,
       customer_email: body.customer_email,
       customer_phone: body.customer_phone,
       customer_address_line1: body.customer_address_line1,
+      customer_address_line2: body.customer_address_line2 || null,
+      customer_city: body.customer_city || "London",
       customer_postcode: body.customer_postcode,
+
+      // New structured fields
+      service_id: body.service_id,
+      type_id: body.type_id,
+      brand_id: body.brand_id,
+      model_id: body.model_id,
+
+      // Legacy fields for backward compatibility
       service_type: body.service_type,
       service_subtype: body.service_subtype,
       brand: body.brand,
       model: body.model,
+
       starting_price: body.starting_price,
       status: "New",
+      priority: "Normal",
+      contact_attempts: 0,
+      preferred_contact_method: "phone",
     }
 
     console.log("💾 Inserting quote:", quoteData)
