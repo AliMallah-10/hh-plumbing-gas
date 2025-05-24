@@ -270,25 +270,33 @@ export default function AdminDashboardPage() {
   // Replace the loadQuotes function with this:
   const loadQuotes = useCallback(async () => {
     try {
-      console.log("Attempting to load quotes from API...")
+      console.log("🔄 Starting to load quotes from API...")
+      console.log("🌐 API URL:", "/api/quotes")
 
       const response = await fetch("/api/quotes")
+      console.log("📡 Response status:", response.status)
+      console.log("📡 Response ok:", response.ok)
 
       if (!response.ok) {
+        console.error("❌ HTTP error! status:", response.status)
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
       const result = await response.json()
+      console.log("📦 Raw API result:", result)
+      console.log("✅ Result success:", result.success)
+      console.log("📊 Quotes array:", result.quotes)
+      console.log("📊 Quotes length:", result.quotes?.length)
 
       if (result.success && result.quotes) {
-        console.log("Quotes loaded from API:", result.quotes)
+        console.log("✅ Setting quotes in state:", result.quotes.length, "quotes")
         setQuoteRequests(result.quotes)
       } else {
-        console.log("No quotes found in API")
+        console.log("⚠️ No quotes found in API response")
         setQuoteRequests([])
       }
     } catch (error) {
-      console.error("Error loading quotes from API:", error)
+      console.error("❌ Error loading quotes from API:", error)
       setQuoteRequests([])
     }
   }, [])
