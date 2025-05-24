@@ -561,22 +561,24 @@ export default function AdminDashboardPage() {
         "Address",
         "Service",
         "Type",
-        "Option",
+        "Brand",
+        "Model",
         "Price",
         "Status",
       ]
 
       const data = [
-        quote.id,
-        new Date(quote.date).toLocaleString(),
-        quote.customer.name,
-        quote.customer.email,
-        quote.customer.phone,
-        `${quote.customer.address.line1}, ${quote.customer.address.city}, ${quote.customer.address.postcode}`,
-        quote.service,
-        quote.type,
-        quote.option,
-        quote.price,
+        quote.quote_reference,
+        new Date(quote.created_at).toLocaleString(),
+        quote.customer_name,
+        quote.customer_email,
+        quote.customer_phone,
+        `${quote.customer_address_line1}, ${quote.customer_city}, ${quote.customer_postcode}`,
+        quote.service_type,
+        quote.service_subtype,
+        quote.brand,
+        quote.model,
+        quote.starting_price ? `£${(quote.starting_price / 100).toFixed(2)}` : "TBC",
         quote.status,
       ]
 
@@ -585,14 +587,14 @@ export default function AdminDashboardPage() {
       const url = URL.createObjectURL(blob)
       const link = document.createElement("a")
       link.setAttribute("href", url)
-      link.setAttribute("download", `quote_${quote.id}.csv`)
+      link.setAttribute("download", `quote_${quote.quote_reference}.csv`)
       link.style.visibility = "hidden"
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
 
       // Log activity
-      logActivity(`Exported quote ${quote.id} to CSV`)
+      logActivity(`Exported quote ${quote.quote_reference} to CSV`)
     },
     [logActivity],
   )
@@ -1025,17 +1027,17 @@ export default function AdminDashboardPage() {
                         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Customer Information</h3>
                         <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                           <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {selectedQuote.customer.name}
+                            {selectedQuote.customer_name}
                           </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">{selectedQuote.customer.email}</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">{selectedQuote.customer.phone}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">{selectedQuote.customer_email}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">{selectedQuote.customer_phone}</p>
                           <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
                             <p className="text-sm text-gray-600 dark:text-gray-300">
-                              {selectedQuote.customer.address.line1}
-                              {selectedQuote.customer.address.line2 && <>, {selectedQuote.customer.address.line2}</>}
+                              {selectedQuote.customer_address_line1}
+                              {selectedQuote.customer_address_line2 && <>, {selectedQuote.customer_address_line2}</>}
                             </p>
                             <p className="text-sm text-gray-600 dark:text-gray-300">
-                              {selectedQuote.customer.address.city}, {selectedQuote.customer.address.postcode}
+                              {selectedQuote.customer_city}, {selectedQuote.customer_postcode}
                             </p>
                           </div>
                         </div>
@@ -1046,18 +1048,24 @@ export default function AdminDashboardPage() {
                         <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                           <div className="flex items-center mb-2">
                             <div className="flex-shrink-0 h-6 w-6 text-gray-500 dark:text-gray-400 mr-2">
-                              {getServiceIcon(selectedQuote.service)}
+                              {getServiceIcon(selectedQuote.service_type)}
                             </div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">{selectedQuote.service}</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {selectedQuote.service_type}
+                            </p>
                           </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">Type: {selectedQuote.type}</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">Option: {selectedQuote.option}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
+                            Type: {selectedQuote.service_subtype}
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">Brand: {selectedQuote.brand}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">Model: {selectedQuote.model}</p>
                           <p className="text-sm font-medium text-gray-900 dark:text-white mt-2">
-                            {selectedQuote.price}
+                            Starting from £
+                            {selectedQuote.starting_price ? (selectedQuote.starting_price / 100).toFixed(2) : "TBC"}
                           </p>
                           <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
                             <p className="text-sm text-gray-600 dark:text-gray-300">
-                              Submitted on: {formatDate(selectedQuote.date)}
+                              Submitted on: {formatDate(selectedQuote.created_at)}
                             </p>
                             <div className="mt-2">
                               <StatusBadge status={selectedQuote.status} />
