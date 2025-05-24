@@ -582,14 +582,13 @@ export default function AdminDashboardPage() {
     // First filter the requests
     const filtered = quoteRequests.filter((request) => {
       const matchesSearch =
-        (request.customer_name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (request.customer_email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (request.quote_reference || request.id || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (request.customer_postcode || "").toLowerCase().includes(searchTerm.toLowerCase())
+        request.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.customer.address.postcode.toLowerCase().includes(searchTerm.toLowerCase())
 
       const matchesStatus = statusFilter === "All" || request.status === statusFilter
-      const matchesService =
-        serviceFilter === "All" || (request.service_type || request.service || "").includes(serviceFilter)
+      const matchesService = serviceFilter === "All" || request.service === serviceFilter
 
       return matchesSearch && matchesStatus && matchesService
     })
@@ -600,9 +599,9 @@ export default function AdminDashboardPage() {
         let aValue, bValue
 
         // Handle nested properties
-        if (sortConfig.key === "customer_name") {
-          aValue = a.customer_name
-          bValue = b.customer_name
+        if (sortConfig.key === "customer.name") {
+          aValue = a.customer.name
+          bValue = b.customer.name
         } else {
           aValue = a[sortConfig.key as keyof typeof a]
           bValue = b[sortConfig.key as keyof typeof b]
@@ -637,24 +636,10 @@ export default function AdminDashboardPage() {
 
   const handleQuoteClick = useCallback(
     (quote: any) => {
-      // Transform the flat structure to nested for the detail view
-      const transformedQuote = {
-        ...quote,
-        customer: {
-          name: quote.customer_name,
-          email: quote.customer_email,
-          phone: quote.customer_phone,
-          address: {
-            line1: quote.customer_address_line1,
-            line2: quote.customer_address_line2,
-            city: quote.customer_city,
-            postcode: quote.customer_postcode,
-          },
-        },
-      }
-      setSelectedQuote(transformedQuote)
+      setSelectedQuote(quote)
       setIsDetailOpen(true)
-      logActivity(`Viewed quote ${quote.quote_reference || quote.id}`)
+      // Log activity
+      logActivity(`Viewed quote ${quote.id}`)
     },
     [logActivity],
   )
@@ -1027,7 +1012,7 @@ export default function AdminDashboardPage() {
                       <th
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
-                        onClick={() => requestSort("customer_name")}
+                        onClick={() => requestSort("customer.name")}
                       >
                         Customer
                       </th>
@@ -1055,36 +1040,36 @@ export default function AdminDashboardPage() {
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {currentItems.length > 0 ? (
-                      currentItems.map((request) => (
+                      currentItems.map((quote) => (
                         <tr
-                          key={request.id}
+                          key={quote.id}
                           className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
-                          onClick={() => handleQuoteClick(request)}
+                          onClick={() => handleQuoteClick(quote)}
                         >
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                            {request.id}
+                            {quote.id}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                            {formatDate(request.date)}
+                            {formatDate(quote.date)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900 dark:text-white">
-                              {request.customer_name}
+                              {quote.customer.name}
                             </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">{request.customer_email}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">{quote.customer.email}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="flex-shrink-0 h-6 w-6 text-gray-500 dark:text-gray-400 mr-2">
-                                {getServiceIcon(request.service_type || request.service_id || "")}
+                                {getServiceIcon(quote.service_type || quote.service_id || "")}
                               </div>
                               <div className="text-sm text-gray-900 dark:text-white">
-                                {request.service_type || request.service_id || "Unknown Service"}
+                                {quote.service_type || quote.service_id || "Unknown Service"}
                               </div>
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <StatusBadge status={request.status} />
+                            <StatusBadge status={quote.status} />
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div className="relative inline-block text-left" onClick={(e) => e.stopPropagation()}>
@@ -1103,43 +1088,43 @@ export default function AdminDashboardPage() {
                                 >
                                   <button
                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    onClick={() => updateQuoteStatusHandler(request.id, "Contacted")}
+                                    onClick={() => updateQuoteStatusHandler(quote.id, "Contacted")}
                                   >
                                     Mark as Contacted
                                   </button>
                                   <button
                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    onClick={() => updateQuoteStatusHandler(request.id, "Quoted")}
+                                    onClick={() => updateQuoteStatusHandler(quote.id, "Quoted")}
                                   >
                                     Mark as Quoted
                                   </button>
                                   <button
                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    onClick={() => updateQuoteStatusHandler(request.id, "Scheduled")}
+                                    onClick={() => updateQuoteStatusHandler(quote.id, "Scheduled")}
                                   >
                                     Mark as Scheduled
                                   </button>
                                   <button
                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    onClick={() => updateQuoteStatusHandler(request.id, "Completed")}
+                                    onClick={() => updateQuoteStatusHandler(quote.id, "Completed")}
                                   >
                                     Mark as Completed
                                   </button>
                                   <button
                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    onClick={() => updateQuoteStatusHandler(request.id, "Cancelled")}
+                                    onClick={() => updateQuoteStatusHandler(quote.id, "Cancelled")}
                                   >
                                     Mark as Cancelled
                                   </button>
                                   <button
                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    onClick={() => exportQuoteCSV(request)}
+                                    onClick={() => exportQuoteCSV(quote)}
                                   >
                                     Export to CSV
                                   </button>
                                   <button
                                     className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    onClick={() => handleDeleteQuote(request.id)}
+                                    onClick={() => handleDeleteQuote(quote.id)}
                                   >
                                     Delete
                                   </button>
