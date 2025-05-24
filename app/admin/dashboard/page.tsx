@@ -20,7 +20,6 @@ import {
   Bug,
   Home,
 } from "lucide-react"
-import { getQuotes, updateQuoteStatus, deleteQuote } from "../../utils/quote-storage"
 
 // Custom SVG icons for service types
 const BoilerIcon = () => (
@@ -268,19 +267,20 @@ export default function AdminDashboardPage() {
     }
   }, [])
 
-  // Function to load quotes from localStorage
-  const loadQuotes = useCallback(() => {
+  // Replace the loadQuotes function with this:
+  const loadQuotes = useCallback(async () => {
     try {
-      console.log("Attempting to load quotes...")
-      const storedQuotes = getQuotes()
-      console.log("Quotes loaded:", storedQuotes)
+      console.log("Attempting to load quotes from API...")
 
-      if (storedQuotes && Array.isArray(storedQuotes) && storedQuotes.length > 0) {
-        setQuoteRequests(storedQuotes)
-        console.log("Quotes set to state:", storedQuotes.length)
+      const response = await fetch("/api/quotes")
+      const result = await response.json()
+
+      if (result.success && result.quotes) {
+        console.log("Quotes loaded from API:", result.quotes)
+        setQuoteRequests(result.quotes)
       } else {
-        console.log("No quotes found in storage, using mock data")
-        // Use the mock data that was previously defined in the component
+        console.log("No quotes found in API, using mock data")
+        // Use the existing mock data as fallback
         const MOCK_QUOTE_REQUESTS = [
           {
             id: "QR-2024-001",
@@ -446,8 +446,8 @@ export default function AdminDashboardPage() {
         setQuoteRequests(MOCK_QUOTE_REQUESTS)
       }
     } catch (error) {
-      console.error("Error loading quotes:", error)
-      alert("Failed to load quotes")
+      console.error("Error loading quotes from API:", error)
+      alert("Failed to load quotes from database")
     }
   }, [])
 
@@ -535,15 +535,18 @@ export default function AdminDashboardPage() {
     }
   }, [isAuthenticated, lastActivity, showSecurityAlert, handleLogout])
 
-  // Refresh data
-  const refreshData = useCallback(() => {
+  // Replace the refreshData function with this:
+  const refreshData = useCallback(async () => {
     setIsRefreshing(true)
-    // Reload quotes from localStorage
-    setTimeout(() => {
-      loadQuotes()
-      setIsRefreshing(false)
+    try {
+      await loadQuotes()
       alert("Data refreshed successfully")
-    }, 1000)
+    } catch (error) {
+      console.error("Error refreshing data:", error)
+      alert("Failed to refresh data")
+    } finally {
+      setIsRefreshing(false)
+    }
   }, [loadQuotes])
 
   // Sort function
@@ -629,46 +632,77 @@ export default function AdminDashboardPage() {
     setIsDetailOpen(false)
   }, [])
 
+  // Replace the handleDeleteQuote function with this:
   const handleDeleteQuote = useCallback(
-    (id: string) => {
+    async (id: string) => {
       if (window.confirm("Are you sure you want to delete this quote? This action cannot be undone.")) {
-        deleteQuote(id)
+        try {
+          const response = await fetch(`/api/quotes/${id}`, {
+            method: "DELETE",
+          })
 
-        // Update the UI
-        setQuoteRequests((prev) => prev.filter((quote) => quote.id !== id))
+          const result = await response.json()
 
-        if (selectedQuote && selectedQuote.id === id) {
-          setIsDetailOpen(false)
-          setSelectedQuote(null)
+          if (result.success) {
+            // Update the UI
+            setQuoteRequests((prev) => prev.filter((quote) => quote.id !== id))
+
+            if (selectedQuote && selectedQuote.id === id) {
+              setIsDetailOpen(false)
+              setSelectedQuote(null)
+            }
+
+            // Show success message
+            alert(`Quote ${id} deleted successfully`)
+
+            // Log activity
+            logActivity(`Deleted quote ${id}`)
+          } else {
+            alert(`Error deleting quote: ${result.error}`)
+          }
+        } catch (error) {
+          console.error("Error deleting quote:", error)
+          alert("Failed to delete quote")
         }
-
-        // Show success toast
-        alert(`Quote ${id} deleted successfully`)
-
-        // Log activity
-        logActivity(`Deleted quote ${id}`)
       }
     },
     [selectedQuote, logActivity],
   )
 
+  // Replace the updateQuoteStatusHandler function with this:
   const updateQuoteStatusHandler = useCallback(
-    (id: string, newStatus: string) => {
-      // Update in localStorage
-      updateQuoteStatus(id, newStatus)
+    async (id: string, newStatus: string) => {
+      try {
+        const response = await fetch(`/api/quotes/${id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: newStatus }),
+        })
 
-      // Update in state
-      setQuoteRequests((prev) => prev.map((quote) => (quote.id === id ? { ...quote, status: newStatus } : quote)))
+        const result = await response.json()
 
-      if (selectedQuote && selectedQuote.id === id) {
-        setSelectedQuote({ ...selectedQuote, status: newStatus })
+        if (result.success) {
+          // Update in state
+          setQuoteRequests((prev) => prev.map((quote) => (quote.id === id ? { ...quote, status: newStatus } : quote)))
+
+          if (selectedQuote && selectedQuote.id === id) {
+            setSelectedQuote({ ...selectedQuote, status: newStatus })
+          }
+
+          // Show success message
+          alert(`Quote ${id} status updated to ${newStatus}`)
+
+          // Log activity
+          logActivity(`Updated quote ${id} status to ${newStatus}`)
+        } else {
+          alert(`Error updating quote: ${result.error}`)
+        }
+      } catch (error) {
+        console.error("Error updating quote status:", error)
+        alert("Failed to update quote status")
       }
-
-      // Show success toast
-      alert(`Quote ${id} status updated to ${newStatus}`)
-
-      // Log activity
-      logActivity(`Updated quote ${id} status to ${newStatus}`)
     },
     [selectedQuote, logActivity],
   )

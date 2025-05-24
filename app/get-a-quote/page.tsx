@@ -16,7 +16,6 @@ import {
   HybridHeatPumpIcon,
   InfoIcon,
 } from "../components/icons/boiler-icons"
-import { saveQuoteRequest } from "../utils/quote-storage"
 
 const serviceTypes = [
   { id: "boiler-installation", name: "Boiler Installation", icon: <CombiBoilerIcon /> },
@@ -538,9 +537,13 @@ export default function GetAQuote() {
       const models = brandModels[brandModelKey as keyof typeof brandModels] || []
       const modelName = models.find((model) => model.id === selectedModel)?.name || ""
 
-      // Save quote request to localStorage
+      // Prepare quote data for API
       const quoteData = {
-        ...formData,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        postcode: formData.postcode,
         serviceType: service,
         type: typeName,
         brand: brandName,
@@ -548,10 +551,20 @@ export default function GetAQuote() {
         startingPrice: startingPrice || 0,
       }
 
-      console.log("Saving quote data:", quoteData)
-      const savedQuote = saveQuoteRequest(quoteData)
+      console.log("Submitting quote data:", quoteData)
 
-      if (savedQuote) {
+      // Submit to API
+      const response = await fetch("/api/quotes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(quoteData),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
         // Show success message
         alert("Your quote request has been submitted successfully! We will contact you shortly.")
 
@@ -570,11 +583,10 @@ export default function GetAQuote() {
         })
         setStep(1)
 
-        // Log the current state of quotes in localStorage for debugging
-        const currentQuotes = localStorage.getItem("hh-plumbing-quotes")
-        console.log("Current quotes in storage:", currentQuotes ? JSON.parse(currentQuotes) : "None")
+        console.log("Quote submitted successfully:", result.quote)
       } else {
-        alert("There was an error submitting your quote request. Please try again.")
+        console.error("API Error:", result.error)
+        alert(`Error submitting quote: ${result.error || "Please try again."}`)
       }
     } catch (error) {
       console.error("Error submitting form:", error)
