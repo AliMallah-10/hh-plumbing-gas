@@ -687,6 +687,17 @@ export default function AdminDashboardPage() {
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white">HH Plumbing Admin Dashboard</h1>
           <div className="flex items-center space-x-4">
             <button
+              onClick={() => {
+                console.log("Current quotes state:", quoteRequests)
+                console.log("Quote requests length:", quoteRequests.length)
+                alert(`Current quotes in state: ${quoteRequests.length}\n\nCheck console for full data`)
+              }}
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
+              title="Check quotes state"
+            >
+              <AlertCircle className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+            </button>
+            <button
               onClick={refreshData}
               className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
               disabled={isRefreshing}
