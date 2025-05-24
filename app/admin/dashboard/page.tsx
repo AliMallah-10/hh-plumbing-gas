@@ -1187,31 +1187,9 @@ export default function AdminDashboardPage() {
                               <div className="mt-2">
                                 <StatusBadge status={selectedQuote.status} />
                               </div>
-
-                              {/* Debug info - remove this after fixing */}
-                              <div className="mt-6 p-4 bg-yellow-200 dark:bg-yellow-800 border-2 border-yellow-400 rounded-lg">
-                                <h4 className="text-lg font-bold text-black dark:text-white mb-2">
-                                  🐛 DEBUG INFO - QUOTE DATA STRUCTURE
-                                </h4>
-                                <div className="bg-white dark:bg-gray-900 p-3 rounded border max-h-64 overflow-y-auto">
-                                  <pre className="text-xs text-black dark:text-white whitespace-pre-wrap">
-                                    {JSON.stringify(selectedQuote, null, 2)}
-                                  </pre>
-                                </div>
-                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-
-                    {/* LARGE DEBUG SECTION - MOVED UP FOR VISIBILITY */}
-                    <div className="mt-6 p-6 bg-red-500 border-4 border-red-700 rounded-lg">
-                      <h4 className="text-2xl font-bold text-white mb-4">🚨 DEBUG INFO - QUOTE DATA STRUCTURE 🚨</h4>
-                      <div className="bg-white p-4 rounded border max-h-96 overflow-y-auto">
-                        <pre className="text-sm text-black whitespace-pre-wrap">
-                          {JSON.stringify(selectedQuote, null, 2)}
-                        </pre>
                       </div>
                     </div>
 
