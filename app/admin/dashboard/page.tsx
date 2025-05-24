@@ -632,22 +632,41 @@ export default function AdminDashboardPage() {
     const serviceLower = service.toLowerCase()
     console.log("🔍 serviceLower:", serviceLower)
 
-    if (serviceLower.includes("boiler")) {
+    // Handle test data service mappings first
+    const testServiceMap: Record<string, string> = {
+      service1: "boiler",
+      service2: "heat pump",
+      service3: "underfloor",
+      service4: "cylinder",
+      service5: "emergency",
+      service6: "bathroom",
+    }
+
+    // Check if it's test data and map it
+    const mappedService = testServiceMap[serviceLower] || serviceLower
+    console.log("🔍 mappedService:", mappedService)
+
+    if (mappedService.includes("boiler")) {
       console.log("✅ Returning BoilerIcon")
       return <BoilerIcon />
-    } else if (serviceLower.includes("heat pump")) {
+    } else if (mappedService.includes("heat pump") || mappedService.includes("heatpump")) {
       console.log("✅ Returning HeatPumpIcon")
       return <HeatPumpIcon />
-    } else if (serviceLower.includes("underfloor")) {
+    } else if (mappedService.includes("underfloor")) {
       console.log("✅ Returning UnderfloorHeatingIcon")
       return <UnderfloorHeatingIcon />
-    } else if (serviceLower.includes("cylinder")) {
+    } else if (mappedService.includes("cylinder")) {
       console.log("✅ Returning CylinderIcon")
+      return <CylinderIcon />
+    } else if (mappedService.includes("emergency") || mappedService.includes("repair")) {
+      console.log("✅ Returning emergency icon (using BoilerIcon as fallback)")
+      return <BoilerIcon />
+    } else if (mappedService.includes("bathroom")) {
+      console.log("✅ Returning bathroom icon (using CylinderIcon as fallback)")
       return <CylinderIcon />
     }
 
-    console.log("❌ No icon found, returning fallback")
-    // Return a fallback icon instead of null
+    console.log("❌ No icon found for:", mappedService, "returning fallback")
     return <AlertCircle className="w-6 h-6" />
   }, [])
 
