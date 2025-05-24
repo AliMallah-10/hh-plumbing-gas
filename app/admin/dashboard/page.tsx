@@ -273,181 +273,23 @@ export default function AdminDashboardPage() {
       console.log("Attempting to load quotes from API...")
 
       const response = await fetch("/api/quotes")
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
       const result = await response.json()
 
       if (result.success && result.quotes) {
         console.log("Quotes loaded from API:", result.quotes)
         setQuoteRequests(result.quotes)
       } else {
-        console.log("No quotes found in API, using mock data")
-        // Use the existing mock data as fallback
-        const MOCK_QUOTE_REQUESTS = [
-          {
-            id: "QR-2024-001",
-            date: "2024-05-15T10:30:00",
-            customer: {
-              name: "John Smith",
-              email: "john.smith@example.com",
-              phone: "07700 900123",
-              address: {
-                line1: "42 High Street",
-                line2: "Flat 3",
-                city: "London",
-                postcode: "W1 8QP",
-              },
-            },
-            service: "Boiler installation",
-            type: "Combi Boiler",
-            option: "Vaillant",
-            price: "Starting from £1,750",
-            status: "New",
-          },
-          {
-            id: "QR-2024-002",
-            date: "2024-05-14T14:15:00",
-            customer: {
-              name: "Sarah Johnson",
-              email: "sarah.j@example.com",
-              phone: "07700 900456",
-              address: {
-                line1: "15 Park Avenue",
-                line2: "",
-                city: "London",
-                postcode: "E14 9RX",
-              },
-            },
-            service: "Heat Pump installation",
-            type: "Air Source Heat Pump",
-            option: "Mitsubishi",
-            price: "Starting from £3,800",
-            status: "Contacted",
-          },
-          {
-            id: "QR-2024-003",
-            date: "2024-05-13T09:45:00",
-            customer: {
-              name: "David Williams",
-              email: "d.williams@example.com",
-              phone: "07700 900789",
-              address: {
-                line1: "8 Queen's Road",
-                line2: "Apartment 12",
-                city: "London",
-                postcode: "NW6 6SJ",
-              },
-            },
-            service: "Underfloor heating installation",
-            type: "Wet Underfloor Heating",
-            option: "Premium Package",
-            price: "Starting from £80/m²",
-            status: "Quoted",
-          },
-          {
-            id: "QR-2024-004",
-            date: "2024-05-12T16:20:00",
-            customer: {
-              name: "Emma Brown",
-              email: "emma.brown@example.com",
-              phone: "07700 900234",
-              address: {
-                line1: "27 Church Lane",
-                line2: "",
-                city: "London",
-                postcode: "SW19 5AE",
-              },
-            },
-            service: "Cylinder installation",
-            type: "Indirect Cylinder",
-            option: "Megaflo",
-            price: "Starting from £950",
-            status: "Scheduled",
-          },
-          {
-            id: "QR-2024-005",
-            date: "2024-05-11T11:00:00",
-            customer: {
-              name: "Michael Taylor",
-              email: "m.taylor@example.com",
-              phone: "07700 900567",
-              address: {
-                line1: "53 Victoria Road",
-                line2: "Unit 7",
-                city: "London",
-                postcode: "W8 5RN",
-              },
-            },
-            service: "Boiler installation",
-            type: "System Boiler",
-            option: "Worcester Bosch",
-            price: "Starting from £2,150",
-            status: "Completed",
-          },
-          {
-            id: "QR-2024-006",
-            date: "2024-05-10T13:30:00",
-            customer: {
-              name: "Sophie Wilson",
-              email: "sophie.w@example.com",
-              phone: "07700 900890",
-              address: {
-                line1: "12 Maple Drive",
-                line2: "",
-                city: "London",
-                postcode: "N1 7GH",
-              },
-            },
-            service: "Underfloor heating installation",
-            type: "Electric Underfloor Heating",
-            option: "Standard Mat System",
-            price: "Starting from £40/m²",
-            status: "Cancelled",
-          },
-          {
-            id: "QR-2024-007",
-            date: "2024-05-09T10:15:00",
-            customer: {
-              name: "James Anderson",
-              email: "j.anderson@example.com",
-              phone: "07700 900345",
-              address: {
-                line1: "89 Oak Lane",
-                line2: "Flat 5B",
-                city: "London",
-                postcode: "E2 6FD",
-              },
-            },
-            service: "Heat Pump installation",
-            type: "Ground Source Heat Pump",
-            option: "NIBE",
-            price: "Starting from £5,500",
-            status: "New",
-          },
-          {
-            id: "QR-2024-008",
-            date: "2024-05-08T15:45:00",
-            customer: {
-              name: "Olivia Martin",
-              email: "o.martin@example.com",
-              phone: "07700 900678",
-              address: {
-                line1: "34 Elm Street",
-                line2: "",
-                city: "London",
-                postcode: "SW1 8BN",
-              },
-            },
-            service: "Cylinder installation",
-            type: "Direct Cylinder",
-            option: "Gledhill",
-            price: "Starting from £700",
-            status: "Quoted",
-          },
-        ]
-        setQuoteRequests(MOCK_QUOTE_REQUESTS)
+        console.log("No quotes found in API")
+        setQuoteRequests([])
       }
     } catch (error) {
       console.error("Error loading quotes from API:", error)
-      alert("Failed to load quotes from database")
+      setQuoteRequests([])
     }
   }, [])
 
@@ -566,13 +408,13 @@ export default function AdminDashboardPage() {
     // First filter the requests
     const filtered = quoteRequests.filter((request) => {
       const matchesSearch =
-        request.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.customer.address.postcode.toLowerCase().includes(searchTerm.toLowerCase())
+        request.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.customer_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.quote_reference?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.customer_postcode?.toLowerCase().includes(searchTerm.toLowerCase())
 
       const matchesStatus = statusFilter === "All" || request.status === statusFilter
-      const matchesService = serviceFilter === "All" || request.service === serviceFilter
+      const matchesService = serviceFilter === "All" || request.service_type === serviceFilter
 
       return matchesSearch && matchesStatus && matchesService
     })
@@ -1031,23 +873,23 @@ export default function AdminDashboardPage() {
                           onClick={() => handleQuoteClick(quote)}
                         >
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                            {quote.id}
+                            {quote.quote_reference}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                            {formatDate(quote.date)}
+                            {formatDate(quote.created_at)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900 dark:text-white">
-                              {quote.customer.name}
+                              {quote.customer_name}
                             </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">{quote.customer.email}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">{quote.customer_email}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="flex-shrink-0 h-6 w-6 text-gray-500 dark:text-gray-400 mr-2">
-                                {getServiceIcon(quote.service)}
+                                {getServiceIcon(quote.service_type)}
                               </div>
-                              <div className="text-sm text-gray-900 dark:text-white">{quote.service}</div>
+                              <div className="text-sm text-gray-900 dark:text-white">{quote.service_type}</div>
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
