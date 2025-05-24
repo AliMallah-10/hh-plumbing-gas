@@ -239,67 +239,24 @@ export class QuoteDatabase {
   // Update quote status
   static async updateQuoteStatus(id: string, status: DatabaseQuote["status"]): Promise<boolean> {
     try {
-      console.log("🔄 updateQuoteStatus called with:", { id, status })
-
       const db = await readDatabase()
-      console.log("📊 Database loaded, quotes count:", db.quotes?.length || 0)
-
-      if (!db.quotes || !Array.isArray(db.quotes)) {
-        console.error("❌ No quotes array found in database")
-        return false
-      }
-
-      console.log("🔍 Looking for quote with ID:", id)
-      console.log(
-        "📋 Available quote IDs:",
-        db.quotes.map((q) => q.id),
-      )
-
-      const quoteIndex = db.quotes.findIndex((q: DatabaseQuote) => q.id === id)
-      console.log("📍 Quote index found:", quoteIndex)
+      const quoteIndex = db.quotes?.findIndex((q: DatabaseQuote) => q.id === id) ?? -1
 
       if (quoteIndex === -1) {
-        console.error("❌ Quote not found with ID:", id)
-        console.log("🔍 Trying alternative ID formats...")
-
-        // Try to find by quote_reference as well
-        const altIndex = db.quotes.findIndex((q: any) => q.quote_reference === id)
-        if (altIndex !== -1) {
-          console.log("✅ Found quote by quote_reference at index:", altIndex)
-          db.quotes[altIndex].status = status
-          db.quotes[altIndex].updatedAt = new Date().toISOString()
-
-          const success = await writeDatabase(db)
-          if (success) {
-            console.log(`✅ Quote ${id} status updated to ${status} via quote_reference`)
-          }
-          return success
-        }
-
+        console.error("❌ Quote not found:", id)
         return false
       }
-
-      console.log("📝 Updating quote at index:", quoteIndex)
-      console.log("📝 Current quote data:", db.quotes[quoteIndex])
 
       db.quotes[quoteIndex].status = status
       db.quotes[quoteIndex].updatedAt = new Date().toISOString()
 
-      console.log("📝 Updated quote data:", db.quotes[quoteIndex])
-
       const success = await writeDatabase(db)
       if (success) {
         console.log(`✅ Quote ${id} status updated to ${status}`)
-      } else {
-        console.error(`❌ Failed to write database after updating quote ${id}`)
       }
       return success
     } catch (error) {
       console.error("❌ Error updating quote status:", error)
-      console.error("Error details:", {
-        message: error instanceof Error ? error.message : "Unknown error",
-        stack: error instanceof Error ? error.stack : "No stack trace",
-      })
       return false
     }
   }

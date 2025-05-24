@@ -1,72 +1,147 @@
-import { NextResponse } from "next/server"
-import { supabase } from "@/app/lib/supabase"
+import { type NextRequest, NextResponse } from "next/server"
+import { QuoteDatabase, type DatabaseQuote } from "@/app/lib/database"
 
-export async function GET() {
+// GET - Fetch all quotes or search
+export async function GET(request: NextRequest) {
   try {
-    console.log("GET /api/quotes called")
+    console.log("🔍 GET /api/quotes - Starting request")
 
-    const { data: quotes, error } = await supabase.from("quotes").select("*").order("created_at", { ascending: false })
+    const { searchParams } = new URL(request.url)
+    const search = searchParams.get("search")
+    const status = searchParams.get("status")
+    const startDate = searchParams.get("startDate")
+    const endDate = searchParams.get("endDate")
 
-    if (error) {
-      console.error("Supabase error:", error)
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    console.log("📋 Search params:", { search, status, startDate, endDate })
+
+    let quotes: DatabaseQuote[]
+
+    if (search) {
+      quotes = await QuoteDatabase.searchQuotes(search)
+    } else if (status && status !== "All") {
+      quotes = await QuoteDatabase.getQuotesByStatus(status as DatabaseQuote["status"])
+    } else if (startDate && endDate) {
+      quotes = await QuoteDatabase.getQuotesByDateRange(startDate, endDate)
+    } else {
+      quotes = await QuoteDatabase.getAllQuotes()
     }
 
-    console.log("Raw quotes from Supabase:", quotes)
-    console.log("First quote structure:", quotes?.[0])
+    console.log(`✅ GET /api/quotes - Returning ${quotes.length} quotes`)
 
     return NextResponse.json({
       success: true,
-      quotes: quotes || [],
+      quotes,
+      count: quotes.length,
     })
   } catch (error) {
-    console.error("Error fetching quotes:", error)
-    return NextResponse.json({ success: false, error: "Failed to fetch quotes" }, { status: 500 })
+    console.error("❌ Error in GET /api/quotes:", error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to fetch quotes",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    )
   }
 }
 
-export async function POST(request: Request) {
+// POST - Create new quote
+export async function POST(request: NextRequest) {
   try {
+    console.log("📝 POST /api/quotes - Starting request")
+
     const body = await request.json()
-    console.log("POST /api/quotes called with:", body)
+    console.log("📦 Request body received:", {
+      name: body.name,
+      email: body.email,
+      serviceType: body.serviceType,
+      hasAllFields: !!(body.name && body.email && body.phone && body.address && body.postcode && body.serviceType),
+    })
 
-    // Generate quote reference
-    const date = new Date().toISOString().slice(0, 10).replace(/-/g, "")
-    const random = Math.random().toString(36).substring(2, 8).toUpperCase()
-    const quote_reference = `QR-${date}-${random}`
+    // Validate required fields
+    const requiredFields = ["name", "email", "phone", "address", "postcode", "serviceType"]
+    const missingFields = requiredFields.filter((field) => !body[field])
 
-    const { data, error } = await supabase
-      .from("quotes")
-      .insert([
+    if (missingFields.length > 0) {
+      console.error("❌ Missing required fields:", missingFields)
+      return NextResponse.json(
         {
-          quote_reference,
-          customer_name: body.customer_name,
-          customer_email: body.customer_email,
-          customer_phone: body.customer_phone,
-          customer_address_line1: body.customer_address_line1,
-          customer_address_line2: body.customer_address_line2 || null,
-          customer_city: body.customer_city || "London",
-          customer_postcode: body.customer_postcode,
-          service_type: body.service_type,
-          service_subtype: body.service_subtype || null,
-          brand: body.brand || null,
-          model: body.model || null,
-          starting_price: body.starting_price || null,
-          status: "New",
+          success: false,
+          error: `Missing required fields: ${missingFields.join(", ")}`,
+          receivedFields: Object.keys(body),
+          requiredFields,
         },
-      ])
-      .select()
-      .single()
-
-    if (error) {
-      console.error("Supabase error creating quote:", error)
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+        { status: 400 },
+      )
     }
 
-    console.log("Quote created successfully:", data.quote_reference)
-    return NextResponse.json({ success: true, quote: data })
+    // Format quote data
+    const quoteData = {
+      date: new Date().toISOString(),
+      customer: {
+        name: body.name,
+        email: body.email,
+        phone: body.phone,
+        address: {
+          line1: body.address,
+          line2: body.address2 || "",
+          city: body.city || "London",
+          postcode: body.postcode,
+        },
+      },
+      service: body.serviceType,
+      type: body.type || "",
+      option: body.brand || body.model || "",
+      price: body.startingPrice ? `Starting from £${body.startingPrice}` : "TBD",
+      status: "New" as const,
+    }
+
+    console.log("🔧 Formatted quote data:", {
+      service: quoteData.service,
+      customerName: quoteData.customer.name,
+      price: quoteData.price,
+    })
+
+    console.log("💾 Attempting to create quote in database...")
+    const newQuote = await QuoteDatabase.createQuote(quoteData)
+
+    if (newQuote) {
+      console.log("✅ Quote created successfully:", newQuote.id)
+      return NextResponse.json({
+        success: true,
+        quote: newQuote,
+        message: "Quote created successfully",
+      })
+    } else {
+      console.error("❌ Failed to create quote - database returned null")
+
+      // Try to get more information about the failure
+      const testResult = await QuoteDatabase.testConnection()
+      console.log("🧪 Database test result:", testResult)
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Failed to create quote - database error",
+          details: "Database write operation failed",
+          databaseTest: testResult,
+        },
+        { status: 500 },
+      )
+    }
   } catch (error) {
-    console.error("Error creating quote:", error)
-    return NextResponse.json({ success: false, error: "Failed to create quote" }, { status: 500 })
+    console.error("❌ Error in POST /api/quotes:", error)
+    console.error("❌ Error stack:", error instanceof Error ? error.stack : "No stack trace")
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to create quote",
+        details: error instanceof Error ? error.message : "Unknown error",
+        type: error instanceof Error ? error.constructor.name : "Unknown error type",
+      },
+      { status: 500 },
+    )
   }
 }
