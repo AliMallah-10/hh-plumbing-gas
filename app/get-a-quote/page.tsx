@@ -5,6 +5,7 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { Home, ArrowLeft, Star } from "lucide-react"
+import { QuoteService } from "../lib/supabase"
 import {
   CombiBoilerIcon,
   StandardBoilerIcon,
@@ -495,6 +496,8 @@ export default function GetAQuote() {
     setIsSubmitting(true)
 
     try {
+      console.log("🚀 Submitting quote to Supabase...")
+
       // Get service name
       const service = serviceTypes.find((s) => s.id === selectedService)?.name || ""
 
@@ -526,7 +529,6 @@ export default function GetAQuote() {
       const servicePrefix = selectedService?.split("-")[0] || ""
       let brandModelKey = `${selectedBrand}-${servicePrefix}`
 
-      // Special case for underfloor heating
       if (selectedService === "underfloor-heating") {
         const brand = underfloorBrands.find((b) => b.id === selectedBrand)
         if (brand) {
@@ -537,36 +539,30 @@ export default function GetAQuote() {
       const models = brandModels[brandModelKey as keyof typeof brandModels] || []
       const modelName = models.find((model) => model.id === selectedModel)?.name || ""
 
-      // Prepare quote data for API
+      // Prepare quote data for Supabase
       const quoteData = {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        address: formData.address,
-        postcode: formData.postcode,
-        serviceType: service,
-        type: typeName,
+        customer_name: formData.name,
+        customer_email: formData.email,
+        customer_phone: formData.phone,
+        customer_address_line1: formData.address,
+        customer_postcode: formData.postcode,
+        service_type: service,
+        service_subtype: typeName,
         brand: brandName,
         model: modelName,
-        startingPrice: startingPrice || 0,
+        starting_price: startingPrice ? startingPrice * 100 : undefined, // Convert to pence
       }
 
-      console.log("Submitting quote data:", quoteData)
+      console.log("📦 Quote data:", quoteData)
 
-      // Submit to API
-      const response = await fetch("/api/quotes", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(quoteData),
-      })
-
-      const result = await response.json()
+      // Submit to Supabase
+      const result = await QuoteService.createQuote(quoteData)
 
       if (result.success) {
-        // Show success message
-        alert("Your quote request has been submitted successfully! We will contact you shortly.")
+        console.log("✅ Quote submitted successfully:", result.quote?.quote_reference)
+        alert(
+          `Your quote request has been submitted successfully! Your reference number is: ${result.quote?.quote_reference}. We will contact you shortly.`,
+        )
 
         // Reset form
         setSelectedService(null)
@@ -582,14 +578,12 @@ export default function GetAQuote() {
           postcode: "",
         })
         setStep(1)
-
-        console.log("Quote submitted successfully:", result.quote)
       } else {
-        console.error("API Error:", result.error)
+        console.error("❌ Error submitting quote:", result.error)
         alert(`Error submitting quote: ${result.error || "Please try again."}`)
       }
     } catch (error) {
-      console.error("Error submitting form:", error)
+      console.error("❌ Error submitting form:", error)
       alert("There was an error submitting your quote request. Please try again.")
     } finally {
       setIsSubmitting(false)

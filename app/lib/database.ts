@@ -1,61 +1,130 @@
 import { promises as fs } from "fs"
 import path from "path"
 
-// Database file path - use a more reliable location
+// Database file path
 const DB_PATH = path.join(process.cwd(), "data", "quotes.json")
+
+// Check if we're in a browser environment
+const isBrowser = typeof window !== "undefined"
 
 // Ensure data directory exists
 async function ensureDataDirectory() {
+  if (isBrowser) return // Skip in browser
+
   const dataDir = path.dirname(DB_PATH)
   try {
     await fs.access(dataDir)
-    console.log("Data directory exists:", dataDir)
+    console.log("✅ Data directory exists:", dataDir)
   } catch {
-    console.log("Creating data directory:", dataDir)
-    await fs.mkdir(dataDir, { recursive: true })
+    console.log("📁 Creating data directory:", dataDir)
+    try {
+      await fs.mkdir(dataDir, { recursive: true })
+      console.log("✅ Data directory created successfully")
+    } catch (error) {
+      console.error("❌ Failed to create data directory:", error)
+      throw error
+    }
   }
 }
 
 // Initialize database file if it doesn't exist
 async function initializeDatabase() {
+  if (isBrowser) return // Skip in browser
+
   try {
     await fs.access(DB_PATH)
-    console.log("Database file exists:", DB_PATH)
+    console.log("✅ Database file exists:", DB_PATH)
   } catch {
-    console.log("Creating database file:", DB_PATH)
-    await ensureDataDirectory()
-    const initialData = { quotes: [], version: "1.0", created: new Date().toISOString() }
-    await fs.writeFile(DB_PATH, JSON.stringify(initialData, null, 2))
-    console.log("Database file created successfully")
+    console.log("📄 Creating database file:", DB_PATH)
+    try {
+      await ensureDataDirectory()
+      const initialData = {
+        quotes: [],
+        version: "1.0",
+        created: new Date().toISOString(),
+        lastModified: new Date().toISOString(),
+      }
+      await fs.writeFile(DB_PATH, JSON.stringify(initialData, null, 2))
+      console.log("✅ Database file created successfully")
+    } catch (error) {
+      console.error("❌ Failed to create database file:", error)
+      throw error
+    }
   }
 }
 
 // Read database with better error handling
 async function readDatabase() {
+  if (isBrowser) {
+    // Browser fallback - read from localStorage
+    try {
+      const data = localStorage.getItem("hh-plumbing-quotes")
+      if (data) {
+        const parsed = JSON.parse(data)
+        console.log("📱 Database read from localStorage, quotes count:", parsed.quotes?.length || 0)
+        return parsed
+      }
+    } catch (error) {
+      console.error("❌ Error reading from localStorage:", error)
+    }
+    // Return default if localStorage fails
+    return { quotes: [], version: "1.0", created: new Date().toISOString() }
+  }
+
   try {
     await initializeDatabase()
     const data = await fs.readFile(DB_PATH, "utf-8")
     const parsed = JSON.parse(data)
-    console.log("Database read successfully, quotes count:", parsed.quotes?.length || 0)
+    console.log("💾 Database read from file system, quotes count:", parsed.quotes?.length || 0)
     return parsed
   } catch (error) {
-    console.error("Error reading database:", error)
+    console.error("❌ Error reading database from file system:", error)
     // Return default structure if read fails
     return { quotes: [], version: "1.0", created: new Date().toISOString() }
   }
 }
 
-// Write database with better error handling
+// Write database with better error handling and fallback
 async function writeDatabase(data: any) {
-  try {
-    await ensureDataDirectory()
-    await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2))
-    console.log("Database written successfully")
-    return true
-  } catch (error) {
-    console.error("Error writing database:", error)
-    return false
+  let fileSystemSuccess = false
+  let localStorageSuccess = false
+
+  // Try file system first (server-side)
+  if (!isBrowser) {
+    try {
+      await ensureDataDirectory()
+      data.lastModified = new Date().toISOString()
+      await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2))
+      console.log("✅ Database written to file system successfully")
+      fileSystemSuccess = true
+    } catch (error) {
+      console.error("❌ Error writing database to file system:", error)
+      console.error("Error details:", {
+        message: error instanceof Error ? error.message : "Unknown error",
+        code: (error as any)?.code,
+        path: DB_PATH,
+      })
+    }
   }
+
+  // Try localStorage as fallback (browser-side or if file system fails)
+  if (isBrowser || !fileSystemSuccess) {
+    try {
+      data.lastModified = new Date().toISOString()
+      localStorage.setItem("hh-plumbing-quotes", JSON.stringify(data))
+      console.log("✅ Database written to localStorage successfully")
+      localStorageSuccess = true
+    } catch (error) {
+      console.error("❌ Error writing database to localStorage:", error)
+    }
+  }
+
+  const success = fileSystemSuccess || localStorageSuccess
+  if (!success) {
+    console.error("❌ Failed to write database to both file system and localStorage")
+  }
+
+  return success
 }
 
 // Quote interface
@@ -96,10 +165,13 @@ export class QuoteDatabase {
     quoteData: Omit<DatabaseQuote, "id" | "createdAt" | "updatedAt">,
   ): Promise<DatabaseQuote | null> {
     try {
-      console.log("Creating new quote with data:", quoteData)
+      console.log("🔄 Creating new quote with data:", quoteData)
 
       const db = await readDatabase()
-      console.log("Current database state:", { quotesCount: db.quotes?.length || 0 })
+      console.log("📊 Current database state:", {
+        quotesCount: db.quotes?.length || 0,
+        hasQuotesArray: Array.isArray(db.quotes),
+      })
 
       const newQuote: DatabaseQuote = {
         ...quoteData,
@@ -108,25 +180,33 @@ export class QuoteDatabase {
         updatedAt: new Date().toISOString(),
       }
 
-      console.log("Generated new quote:", newQuote)
+      console.log("🆕 Generated new quote:", {
+        id: newQuote.id,
+        service: newQuote.service,
+        customerName: newQuote.customer.name,
+      })
 
       // Ensure quotes array exists
-      if (!db.quotes) {
+      if (!db.quotes || !Array.isArray(db.quotes)) {
+        console.log("🔧 Initializing quotes array")
         db.quotes = []
       }
 
       db.quotes.unshift(newQuote) // Add to beginning
 
+      console.log("💾 Attempting to save database with", db.quotes.length, "quotes")
       const success = await writeDatabase(db)
+
       if (success) {
-        console.log("Quote created successfully:", newQuote.id)
+        console.log("✅ Quote created successfully:", newQuote.id)
         return newQuote
       } else {
-        console.error("Failed to write quote to database")
+        console.error("❌ Failed to write quote to database")
         return null
       }
     } catch (error) {
-      console.error("Error creating quote:", error)
+      console.error("❌ Error creating quote:", error)
+      console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace")
       return null
     }
   }
@@ -135,9 +215,11 @@ export class QuoteDatabase {
   static async getAllQuotes(): Promise<DatabaseQuote[]> {
     try {
       const db = await readDatabase()
-      return db.quotes || []
+      const quotes = db.quotes || []
+      console.log("📋 Retrieved", quotes.length, "quotes from database")
+      return quotes
     } catch (error) {
-      console.error("Error getting quotes:", error)
+      console.error("❌ Error getting quotes:", error)
       return []
     }
   }
@@ -149,7 +231,7 @@ export class QuoteDatabase {
       const quote = db.quotes?.find((q: DatabaseQuote) => q.id === id)
       return quote || null
     } catch (error) {
-      console.error("Error getting quote by ID:", error)
+      console.error("❌ Error getting quote by ID:", error)
       return null
     }
   }
@@ -161,7 +243,7 @@ export class QuoteDatabase {
       const quoteIndex = db.quotes?.findIndex((q: DatabaseQuote) => q.id === id) ?? -1
 
       if (quoteIndex === -1) {
-        console.error("Quote not found:", id)
+        console.error("❌ Quote not found:", id)
         return false
       }
 
@@ -170,11 +252,11 @@ export class QuoteDatabase {
 
       const success = await writeDatabase(db)
       if (success) {
-        console.log(`Quote ${id} status updated to ${status}`)
+        console.log(`✅ Quote ${id} status updated to ${status}`)
       }
       return success
     } catch (error) {
-      console.error("Error updating quote status:", error)
+      console.error("❌ Error updating quote status:", error)
       return false
     }
   }
@@ -187,17 +269,17 @@ export class QuoteDatabase {
       db.quotes = db.quotes?.filter((q: DatabaseQuote) => q.id !== id) || []
 
       if (db.quotes.length === initialLength) {
-        console.error("Quote not found for deletion:", id)
+        console.error("❌ Quote not found for deletion:", id)
         return false
       }
 
       const success = await writeDatabase(db)
       if (success) {
-        console.log(`Quote ${id} deleted successfully`)
+        console.log(`✅ Quote ${id} deleted successfully`)
       }
       return success
     } catch (error) {
-      console.error("Error deleting quote:", error)
+      console.error("❌ Error deleting quote:", error)
       return false
     }
   }
@@ -208,7 +290,7 @@ export class QuoteDatabase {
       const quotes = await this.getAllQuotes()
       return quotes.filter((quote) => quote.status === status)
     } catch (error) {
-      console.error("Error getting quotes by status:", error)
+      console.error("❌ Error getting quotes by status:", error)
       return []
     }
   }
@@ -222,7 +304,7 @@ export class QuoteDatabase {
         return quoteDate >= new Date(startDate) && quoteDate <= new Date(endDate)
       })
     } catch (error) {
-      console.error("Error getting quotes by date range:", error)
+      console.error("❌ Error getting quotes by date range:", error)
       return []
     }
   }
@@ -243,7 +325,7 @@ export class QuoteDatabase {
           quote.service.toLowerCase().includes(term),
       )
     } catch (error) {
-      console.error("Error searching quotes:", error)
+      console.error("❌ Error searching quotes:", error)
       return []
     }
   }
@@ -274,27 +356,93 @@ export class QuoteDatabase {
 
       return stats
     } catch (error) {
-      console.error("Error getting statistics:", error)
+      console.error("❌ Error getting statistics:", error)
       return null
     }
   }
 
   // Test database connection
-  static async testConnection(): Promise<{ success: boolean; message: string; path?: string }> {
+  static async testConnection(): Promise<{
+    success: boolean
+    message: string
+    path?: string
+    environment?: string
+    capabilities?: {
+      fileSystem: boolean
+      localStorage: boolean
+    }
+  }> {
     try {
-      await initializeDatabase()
+      const environment = isBrowser ? "browser" : "server"
+      console.log("🧪 Testing database connection in", environment, "environment")
+
+      let fileSystemWorks = false
+      let localStorageWorks = false
+
+      // Test file system (server-side only)
+      if (!isBrowser) {
+        try {
+          await initializeDatabase()
+          fileSystemWorks = true
+          console.log("✅ File system access working")
+        } catch (error) {
+          console.log("❌ File system access failed:", error)
+        }
+      }
+
+      // Test localStorage (browser-side)
+      if (isBrowser) {
+        try {
+          const testKey = "hh-plumbing-test"
+          localStorage.setItem(testKey, "test")
+          localStorage.removeItem(testKey)
+          localStorageWorks = true
+          console.log("✅ localStorage access working")
+        } catch (error) {
+          console.log("❌ localStorage access failed:", error)
+        }
+      }
+
       const db = await readDatabase()
+      const quotesCount = db.quotes?.length || 0
+
       return {
         success: true,
-        message: `Database connection successful. Found ${db.quotes?.length || 0} quotes.`,
+        message: `Database connection successful in ${environment} environment. Found ${quotesCount} quotes.`,
         path: DB_PATH,
+        environment,
+        capabilities: {
+          fileSystem: fileSystemWorks,
+          localStorage: localStorageWorks,
+        },
       }
     } catch (error) {
       return {
         success: false,
         message: `Database connection failed: ${error}`,
         path: DB_PATH,
+        environment: isBrowser ? "browser" : "server",
       }
+    }
+  }
+
+  // Clear all data (for testing)
+  static async clearAllQuotes(): Promise<boolean> {
+    try {
+      const emptyDb = {
+        quotes: [],
+        version: "1.0",
+        created: new Date().toISOString(),
+        lastModified: new Date().toISOString(),
+      }
+      const success = await writeDatabase(emptyDb)
+      if (success) {
+        console.log("✅ All quotes cleared successfully")
+      }
+      return success
+    } catch (error) {
+      console.error("❌ Error clearing quotes:", error)
+      return false
     }
   }
 }
