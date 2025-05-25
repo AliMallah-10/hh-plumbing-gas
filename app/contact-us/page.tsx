@@ -1,124 +1,105 @@
 import Link from "next/link"
-import { Phone, Mail, Instagram, Smartphone, MapPin, ArrowRight } from "lucide-react"
-import { Logo } from "../components/logo"
-import { Navigation } from "../components/navigation"
+import { Phone, Mail, Instagram, Clock, ArrowRight } from "lucide-react"
+import { Header } from "../components/header"
 import { TopBar } from "../components/top-bar"
 
 export default function ContactUsPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <TopBar />
-      <header className="container mx-auto py-6 px-4 flex items-center justify-between border-b">
-        <Logo />
-        <Navigation />
-      </header>
+      <Header />
 
       <main className="flex-1">
-        <section className="container mx-auto px-4 py-16 md:py-24">
-          <div className="max-w-3xl mx-auto">
-            <h1 className="text-5xl md:text-6xl font-bold mb-8 text-center gradient-text">Contact Us</h1>
-            <p className="text-lg text-gray-700 mb-12 text-center">
-              Get in touch with our team for any inquiries or to schedule a service.
-            </p>
+        {/* Hero Section */}
+        <section className="py-8">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto text-center">
+              <h1 className="text-5xl md:text-6xl font-bold mb-6 gradient-text">Contact Us</h1>
+              <p className="text-xl text-gray-600 dark:text-gray-300 mb-6">
+                Get in touch with our expert team for all your plumbing and heating needs.
+              </p>
+            </div>
+          </div>
+        </section>
 
-            <div className="grid md:grid-cols-2 gap-12">
-              <div className="space-y-8">
-                <div className="flex items-start card-hover p-6 rounded-xl border border-gray-100 dark:border-gray-800">
-                  <div className="bg-gradient-to-br from-brand-yellow to-yellow-400 p-4 rounded-2xl mr-6 shadow-lg">
-                    <Phone className="h-6 w-6 text-black" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-2">Phone</h3>
-                    <p className="text-gray-600 mb-1">Call us for immediate assistance</p>
-                    <a href="tel:07712599254" className="text-lg font-medium hover:text-brand-yellow transition-colors">
-                      07712 599254
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-start card-hover p-6 rounded-xl border border-gray-100 dark:border-gray-800">
-                  <div className="bg-gradient-to-br from-brand-yellow to-yellow-400 p-4 rounded-2xl mr-6 shadow-lg">
-                    <Mail className="h-6 w-6 text-black" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-2">Email</h3>
-                    <p className="text-gray-600 mb-1">Send us an email anytime</p>
-                    <a
-                      href="mailto:info@hhplumbing.com"
-                      className="text-lg font-medium hover:text-brand-yellow transition-colors"
-                    >
-                      info@hhplumbing.com
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-start card-hover p-6 rounded-xl border border-gray-100 dark:border-gray-800">
-                  <div className="bg-gradient-to-br from-brand-yellow to-yellow-400 p-4 rounded-2xl mr-6 shadow-lg">
-                    <MapPin className="h-6 w-6 text-black" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-2">Address</h3>
-                    <p className="text-gray-600 mb-1">Our office location</p>
-                    <address className="not-italic text-lg font-medium">
-                      2 Broomfield Road
-                      <br />
-                      LONDON
-                      <br />
-                      London
-                      <br />
-                      W13 9AP
-                    </address>
-                  </div>
-                </div>
+        {/* Contact Information */}
+        <section className="py-8">
+          <div className="container mx-auto px-4">
+            <div className="max-w-5xl mx-auto">
+              {/* Main Contact - Full Width */}
+              <div className="bg-gradient-to-r from-brand-yellow to-yellow-400 p-12 text-black text-center mb-8">
+                <Phone className="h-16 w-16 mx-auto mb-6" />
+                <h2 className="text-3xl font-bold mb-4">Call Us Now</h2>
+                <a href="tel:07712599254" className="text-4xl font-bold hover:opacity-80 transition-opacity block mb-4">
+                  07712 599254
+                </a>
+                <p className="text-lg opacity-90">Available 24/7 for emergencies</p>
               </div>
 
-              <div className="space-y-8">
-                <div>
-                  <h3 className="text-xl font-bold mb-4">Business Hours</h3>
-                  <ul className="space-y-2">
-                    <li className="flex justify-between border-b pb-2">
-                      <span className="font-medium">Monday - Friday</span>
-                      <span>8:00 AM - 6:00 PM</span>
-                    </li>
-                    <li className="flex justify-between border-b pb-2">
-                      <span className="font-medium">Saturday</span>
-                      <span>9:00 AM - 4:00 PM</span>
-                    </li>
-                    <li className="flex justify-between border-b pb-2">
-                      <span className="font-medium">Sunday</span>
-                      <span>Closed</span>
-                    </li>
-                  </ul>
+              {/* Secondary Info - 3 Column */}
+              <div className="grid md:grid-cols-3 gap-6">
+                {/* Email */}
+                <div className="bg-white dark:bg-gray-800 p-6 text-center shadow-lg">
+                  <Mail className="h-10 w-10 mx-auto mb-4 text-brand-yellow" />
+                  <h3 className="text-lg font-bold mb-3">Email Us</h3>
+                  <a
+                    href="mailto:info@hhplumbing.com"
+                    className="text-brand-yellow hover:opacity-80 transition-opacity font-medium"
+                  >
+                    info@hhplumbing.com
+                  </a>
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">Response within 24hrs</p>
                 </div>
 
-                <div>
-                  <h3 className="text-xl font-bold mb-4">Follow Us</h3>
-                  <div className="flex space-x-4">
+                {/* Business Hours */}
+                <div className="bg-white dark:bg-gray-800 p-6 shadow-lg">
+                  <div className="text-center mb-4">
+                    <Clock className="h-10 w-10 mx-auto mb-3 text-brand-yellow" />
+                    <h3 className="text-lg font-bold">Business Hours</h3>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Mon - Fri</span>
+                      <span>8AM - 6PM</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Saturday</span>
+                      <span>9AM - 4PM</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Sunday</span>
+                      <span>Emergency Only</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Social & Quote */}
+                <div className="bg-white dark:bg-gray-800 p-6 text-center shadow-lg">
+                  <h3 className="text-lg font-bold mb-4">Connect & Quote</h3>
+
+                  <div className="flex justify-center space-x-4 mb-6">
                     <a
                       href="https://www.instagram.com/hhplumbingandgas"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center bg-gray-100 hover:bg-brand-yellow p-3 rounded-full transition-colors"
+                      className="bg-gradient-to-br from-pink-500 to-purple-600 p-3 rounded-xl text-white hover:scale-110 transition-transform"
                     >
-                      <Instagram className="h-6 w-6" />
+                      <Instagram className="h-5 w-5" />
                     </a>
                     <a
                       href="https://www.tiktok.com/@hussain_hachem"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center bg-gray-100 hover:bg-brand-yellow p-3 rounded-full transition-colors"
+                      className="bg-gray-800 p-3 rounded-xl text-white hover:scale-110 transition-transform"
                     >
-                      <Smartphone className="h-6 w-6" />
+                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+                      </svg>
                     </a>
                   </div>
-                  <p className="mt-4 text-gray-600">
-                    Follow us on social media for tips, project showcases, and special offers.
-                  </p>
-                </div>
 
-                <div className="pt-4">
-                  <Link href="/get-a-quote" className="btn-primary w-full text-lg">
-                    Get a Quote
+                  <Link href="/get-a-quote" className="btn-primary w-full">
+                    Get Free Quote
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </div>

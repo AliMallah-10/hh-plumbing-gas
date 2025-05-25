@@ -90,32 +90,38 @@
   h6 {
     @apply font-semibold tracking-tight;
   }
-  /* Apply rounded corners to all card-like elements */
-  .card,
-  .shadow,
-  .shadow-md,
-  .shadow-lg,
-  .shadow-xl,
-  .border,
+  /* Apply sharp corners to sections, cards, and containers */
   section,
   article,
   aside,
+  .card,
   .bg-white,
   .bg-gray-50,
   .bg-gray-100,
   .bg-gray-200,
   .dark .bg-gray-800,
-  .dark .bg-gray-900 {
-    @apply rounded-xl;
+  .dark .bg-gray-900,
+  .shadow,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl,
+  .border {
+    @apply rounded-none;
   }
-  /* Apply rounded corners to form elements */
+  /* Keep form elements rounded */
   input,
   select,
   textarea,
-  button,
   .input,
   .select,
   .textarea {
+    @apply rounded-xl;
+  }
+  /* Keep buttons rounded */
+  button,
+  .btn,
+  .btn-primary,
+  .btn-secondary {
     @apply rounded-xl;
   }
 }
@@ -130,18 +136,18 @@
   }
 
   .card-hover {
-    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1 rounded-xl;
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
   }
 
   .gradient-text {
     @apply bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent;
   }
 
-  /* Add rounded corners to all boxes */
+  /* Sharp corners for containers and sections */
   .box,
   .container,
   .wrapper {
-    @apply rounded-xl;
+    @apply rounded-none;
   }
 }
 
