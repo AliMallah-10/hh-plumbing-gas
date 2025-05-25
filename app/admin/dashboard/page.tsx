@@ -20,6 +20,7 @@ import {
   Bug,
   Home,
 } from "lucide-react"
+import { getQuotes, updateQuoteStatus, deleteQuote } from "../../utils/quote-storage"
 
 // Custom SVG icons for service types
 const BoilerIcon = () => (
@@ -267,20 +268,19 @@ export default function AdminDashboardPage() {
     }
   }, [])
 
-  // Replace the loadQuotes function with this:
-  const loadQuotes = useCallback(async () => {
+  // Function to load quotes from localStorage
+  const loadQuotes = useCallback(() => {
     try {
-      console.log("Attempting to load quotes from API...")
+      console.log("Attempting to load quotes...")
+      const storedQuotes = getQuotes()
+      console.log("Quotes loaded:", storedQuotes)
 
-      const response = await fetch("/api/quotes")
-      const result = await response.json()
-
-      if (result.success && result.quotes) {
-        console.log("Quotes loaded from API:", result.quotes)
-        setQuoteRequests(result.quotes)
+      if (storedQuotes && Array.isArray(storedQuotes) && storedQuotes.length > 0) {
+        setQuoteRequests(storedQuotes)
+        console.log("Quotes set to state:", storedQuotes.length)
       } else {
-        console.log("No quotes found in API, using mock data")
-        // Use the existing mock data as fallback
+        console.log("No quotes found in storage, using mock data")
+        // Use the mock data that was previously defined in the component
         const MOCK_QUOTE_REQUESTS = [
           {
             id: "QR-2024-001",
@@ -297,10 +297,8 @@ export default function AdminDashboardPage() {
               },
             },
             service: "Boiler installation",
-            service_type: "Boiler installation",
-            service_subtype: "Combi Boiler",
-            brand: "Vaillant",
-            model: "EcoTec Pro 28",
+            type: "Combi Boiler",
+            option: "Vaillant",
             price: "Starting from £1,750",
             status: "New",
           },
@@ -319,10 +317,8 @@ export default function AdminDashboardPage() {
               },
             },
             service: "Heat Pump installation",
-            service_type: "Heat Pump installation",
-            service_subtype: "Air Source Heat Pump",
-            brand: "Mitsubishi",
-            model: "Ecodan",
+            type: "Air Source Heat Pump",
+            option: "Mitsubishi",
             price: "Starting from £3,800",
             status: "Contacted",
           },
@@ -341,10 +337,8 @@ export default function AdminDashboardPage() {
               },
             },
             service: "Underfloor heating installation",
-            service_type: "Underfloor heating installation",
-            service_subtype: "Wet Underfloor Heating",
-            brand: "Uponor",
-            model: "Minitec",
+            type: "Wet Underfloor Heating",
+            option: "Premium Package",
             price: "Starting from £80/m²",
             status: "Quoted",
           },
@@ -363,10 +357,8 @@ export default function AdminDashboardPage() {
               },
             },
             service: "Cylinder installation",
-            service_type: "Cylinder installation",
-            service_subtype: "Indirect Cylinder",
-            brand: "Megaflo",
-            model: "Eco Plus",
+            type: "Indirect Cylinder",
+            option: "Megaflo",
             price: "Starting from £950",
             status: "Scheduled",
           },
@@ -385,10 +377,8 @@ export default function AdminDashboardPage() {
               },
             },
             service: "Boiler installation",
-            service_type: "Boiler installation",
-            service_subtype: "System Boiler",
-            brand: "Worcester Bosch",
-            model: "Greenstar 8000",
+            type: "System Boiler",
+            option: "Worcester Bosch",
             price: "Starting from £2,150",
             status: "Completed",
           },
@@ -407,10 +397,8 @@ export default function AdminDashboardPage() {
               },
             },
             service: "Underfloor heating installation",
-            service_type: "Underfloor heating installation",
-            service_subtype: "Electric Underfloor Heating",
-            brand: "Warmup",
-            model: "StickyMat",
+            type: "Electric Underfloor Heating",
+            option: "Standard Mat System",
             price: "Starting from £40/m²",
             status: "Cancelled",
           },
@@ -429,10 +417,8 @@ export default function AdminDashboardPage() {
               },
             },
             service: "Heat Pump installation",
-            service_type: "Heat Pump installation",
-            service_subtype: "Ground Source Heat Pump",
-            brand: "NIBE",
-            model: "F1255",
+            type: "Ground Source Heat Pump",
+            option: "NIBE",
             price: "Starting from £5,500",
             status: "New",
           },
@@ -451,10 +437,8 @@ export default function AdminDashboardPage() {
               },
             },
             service: "Cylinder installation",
-            service_type: "Cylinder installation",
-            service_subtype: "Direct Cylinder",
-            brand: "Gledhill",
-            model: "Stainless Lite",
+            type: "Direct Cylinder",
+            option: "Gledhill",
             price: "Starting from £700",
             status: "Quoted",
           },
@@ -462,8 +446,8 @@ export default function AdminDashboardPage() {
         setQuoteRequests(MOCK_QUOTE_REQUESTS)
       }
     } catch (error) {
-      console.error("Error loading quotes from API:", error)
-      alert("Failed to load quotes from database")
+      console.error("Error loading quotes:", error)
+      alert("Failed to load quotes")
     }
   }, [])
 
@@ -551,18 +535,15 @@ export default function AdminDashboardPage() {
     }
   }, [isAuthenticated, lastActivity, showSecurityAlert, handleLogout])
 
-  // Replace the refreshData function with this:
-  const refreshData = useCallback(async () => {
+  // Refresh data
+  const refreshData = useCallback(() => {
     setIsRefreshing(true)
-    try {
-      await loadQuotes()
-      alert("Data refreshed successfully")
-    } catch (error) {
-      console.error("Error refreshing data:", error)
-      alert("Failed to refresh data")
-    } finally {
+    // Reload quotes from localStorage
+    setTimeout(() => {
+      loadQuotes()
       setIsRefreshing(false)
-    }
+      alert("Data refreshed successfully")
+    }, 1000)
   }, [loadQuotes])
 
   // Sort function
@@ -648,77 +629,46 @@ export default function AdminDashboardPage() {
     setIsDetailOpen(false)
   }, [])
 
-  // Replace the handleDeleteQuote function with this:
   const handleDeleteQuote = useCallback(
-    async (id: string) => {
+    (id: string) => {
       if (window.confirm("Are you sure you want to delete this quote? This action cannot be undone.")) {
-        try {
-          const response = await fetch(`/api/quotes/${id}`, {
-            method: "DELETE",
-          })
+        deleteQuote(id)
 
-          const result = await response.json()
+        // Update the UI
+        setQuoteRequests((prev) => prev.filter((quote) => quote.id !== id))
 
-          if (result.success) {
-            // Update the UI
-            setQuoteRequests((prev) => prev.filter((quote) => quote.id !== id))
-
-            if (selectedQuote && selectedQuote.id === id) {
-              setIsDetailOpen(false)
-              setSelectedQuote(null)
-            }
-
-            // Show success message
-            alert(`Quote ${id} deleted successfully`)
-
-            // Log activity
-            logActivity(`Deleted quote ${id}`)
-          } else {
-            alert(`Error deleting quote: ${result.error}`)
-          }
-        } catch (error) {
-          console.error("Error deleting quote:", error)
-          alert("Failed to delete quote")
+        if (selectedQuote && selectedQuote.id === id) {
+          setIsDetailOpen(false)
+          setSelectedQuote(null)
         }
+
+        // Show success toast
+        alert(`Quote ${id} deleted successfully`)
+
+        // Log activity
+        logActivity(`Deleted quote ${id}`)
       }
     },
     [selectedQuote, logActivity],
   )
 
-  // Replace the updateQuoteStatusHandler function with this:
   const updateQuoteStatusHandler = useCallback(
-    async (id: string, newStatus: string) => {
-      try {
-        const response = await fetch(`/api/quotes/${id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ status: newStatus }),
-        })
+    (id: string, newStatus: string) => {
+      // Update in localStorage
+      updateQuoteStatus(id, newStatus)
 
-        const result = await response.json()
+      // Update in state
+      setQuoteRequests((prev) => prev.map((quote) => (quote.id === id ? { ...quote, status: newStatus } : quote)))
 
-        if (result.success) {
-          // Update in state
-          setQuoteRequests((prev) => prev.map((quote) => (quote.id === id ? { ...quote, status: newStatus } : quote)))
-
-          if (selectedQuote && selectedQuote.id === id) {
-            setSelectedQuote({ ...selectedQuote, status: newStatus })
-          }
-
-          // Show success message
-          alert(`Quote ${id} status updated to ${newStatus}`)
-
-          // Log activity
-          logActivity(`Updated quote ${id} status to ${newStatus}`)
-        } else {
-          alert(`Error updating quote: ${result.error}`)
-        }
-      } catch (error) {
-        console.error("Error updating quote status:", error)
-        alert("Failed to update quote status")
+      if (selectedQuote && selectedQuote.id === id) {
+        setSelectedQuote({ ...selectedQuote, status: newStatus })
       }
+
+      // Show success toast
+      alert(`Quote ${id} status updated to ${newStatus}`)
+
+      // Log activity
+      logActivity(`Updated quote ${id} status to ${newStatus}`)
     },
     [selectedQuote, logActivity],
   )
@@ -1061,11 +1011,9 @@ export default function AdminDashboardPage() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="flex-shrink-0 h-6 w-6 text-gray-500 dark:text-gray-400 mr-2">
-                                {getServiceIcon(quote.service_type || quote.service_id || "")}
+                                {getServiceIcon(quote.service)}
                               </div>
-                              <div className="text-sm text-gray-900 dark:text-white">
-                                {quote.service_type || quote.service_id || "Unknown Service"}
-                              </div>
+                              <div className="text-sm text-gray-900 dark:text-white">{quote.service}</div>
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -1222,21 +1170,12 @@ export default function AdminDashboardPage() {
                         <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                           <div className="flex items-center mb-2">
                             <div className="flex-shrink-0 h-6 w-6 text-gray-500 dark:text-gray-400 mr-2">
-                              {getServiceIcon(selectedQuote.service_type || selectedQuote.service_id || "")}
+                              {getServiceIcon(selectedQuote.service)}
                             </div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              {selectedQuote.service_type || selectedQuote.service_id || "Unknown Service"}
-                            </p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">{selectedQuote.service}</p>
                           </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
-                            Type: {selectedQuote.service_subtype || selectedQuote.type_id || "Not specified"}
-                          </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
-                            Brand: {selectedQuote.brand || selectedQuote.brand_id || "Not specified"}
-                          </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
-                            Model: {selectedQuote.model || selectedQuote.model_id || "Not specified"}
-                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">Type: {selectedQuote.type}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">Option: {selectedQuote.option}</p>
                           <p className="text-sm font-medium text-gray-900 dark:text-white mt-2">
                             {selectedQuote.price}
                           </p>

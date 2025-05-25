@@ -16,6 +16,7 @@ import {
   HybridHeatPumpIcon,
   InfoIcon,
 } from "../components/icons/boiler-icons"
+import { saveQuoteRequest } from "../utils/quote-storage"
 
 const serviceTypes = [
   { id: "boiler-installation", name: "Boiler Installation", icon: <CombiBoilerIcon /> },
@@ -54,52 +55,6 @@ const boilerTypes = [
     startingPrice: 1900,
   },
 ]
-
-
-  const [customerName, setCustomerName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [postcode, setPostcode] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async () => {
-    if (!customerName || !email || !phone || !postcode || !selectedService || !selectedType) {
-      setError("Please fill in all required fields and make selections.");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-
-    try {
-      const res = await fetch("/api/quotes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customer_name: customerName,
-          customer_email: email,
-          customer_phone: phone,
-          customer_postcode: postcode,
-          service_id: selectedService,
-          type_id: selectedType,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || "Failed to create quote");
-      }
-
-      window.location.href = "/thank-you";
-    } catch (err) {
-      console.error("Submission error:", err);
-      setError("There was a problem submitting your quote. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
 
 const heatPumpTypes = [
   {
@@ -541,50 +496,64 @@ export default function GetAQuote() {
     setIsSubmitting(true)
 
     try {
-      console.log("🚀 Submitting quote via API...")
-
+      // Get service name
       const service = serviceTypes.find((s) => s.id === selectedService)?.name || ""
-      const typeName = getTypeOptions().find((t) => t.id === selectedType)?.name || ""
-      const brandName = getAvailableBrands().find((b) => b.id === selectedBrand)?.name || ""
-      const modelName = getModelOptions().find((m) => m.id === selectedModel)?.name || ""
 
-      const response = await fetch("/api/quotes", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          // Customer information
-          customer_name: formData.name,
-          customer_email: formData.email,
-          customer_phone: formData.phone,
-          customer_address_line1: formData.address,
-          customer_postcode: formData.postcode,
+      // Get type name
+      let typeName = ""
+      if (selectedService === "boiler-installation") {
+        typeName = boilerTypes.find((b) => b.id === selectedType)?.name || ""
+      } else if (selectedService === "heat-pump-installation") {
+        typeName = heatPumpTypes.find((b) => b.id === selectedType)?.name || ""
+      } else if (selectedService === "cylinder-installation") {
+        typeName = cylinderTypes.find((b) => b.id === selectedType)?.name || ""
+      } else if (selectedService === "underfloor-heating") {
+        typeName = underfloorTypes.find((b) => b.id === selectedType)?.name || ""
+      }
 
-          // New structured IDs
-          service_id: selectedService,
-          type_id: selectedType,
-          brand_id: selectedBrand,
-          model_id: selectedModel,
+      // Get brand name
+      let brandName = ""
+      if (selectedService === "boiler-installation") {
+        brandName = brands.find((b) => b.id === selectedBrand)?.name || ""
+      } else if (selectedService === "heat-pump-installation") {
+        brandName = heatPumpBrands.find((b) => b.id === selectedBrand)?.name || ""
+      } else if (selectedService === "cylinder-installation") {
+        brandName = cylinderBrands.find((b) => b.id === selectedBrand)?.name || ""
+      } else if (selectedService === "underfloor-heating") {
+        brandName = underfloorBrands.find((b) => b.id === selectedBrand)?.name || ""
+      }
 
-          // Legacy fields for backward compatibility
-          service_type: service,
-          service_subtype: typeName,
-          brand: brandName,
-          model: modelName,
+      // Get model name
+      const servicePrefix = selectedService?.split("-")[0] || ""
+      let brandModelKey = `${selectedBrand}-${servicePrefix}`
 
-          starting_price: startingPrice,
-        }),
-      })
+      // Special case for underfloor heating
+      if (selectedService === "underfloor-heating") {
+        const brand = underfloorBrands.find((b) => b.id === selectedBrand)
+        if (brand) {
+          brandModelKey = `${selectedBrand}-${servicePrefix}`
+        }
+      }
 
-      const result = await response.json()
-      console.log("📡 API Response:", result)
+      const models = brandModels[brandModelKey as keyof typeof brandModels] || []
+      const modelName = models.find((model) => model.id === selectedModel)?.name || ""
 
-      if (result.success) {
-        console.log("✅ Quote submitted successfully:", result.quote?.quote_reference)
-        alert(
-          `Your quote request has been submitted successfully! Your reference number is: ${result.quote?.quote_reference}. We will contact you shortly.`,
-        )
+      // Save quote request to localStorage
+      const quoteData = {
+        ...formData,
+        serviceType: service,
+        type: typeName,
+        brand: brandName,
+        model: modelName,
+        startingPrice: startingPrice || 0,
+      }
+
+      console.log("Saving quote data:", quoteData)
+      const savedQuote = saveQuoteRequest(quoteData)
+
+      if (savedQuote) {
+        // Show success message
+        alert("Your quote request has been submitted successfully! We will contact you shortly.")
 
         // Reset form
         setSelectedService(null)
@@ -600,12 +569,15 @@ export default function GetAQuote() {
           postcode: "",
         })
         setStep(1)
+
+        // Log the current state of quotes in localStorage for debugging
+        const currentQuotes = localStorage.getItem("hh-plumbing-quotes")
+        console.log("Current quotes in storage:", currentQuotes ? JSON.parse(currentQuotes) : "None")
       } else {
-        console.error("❌ Error submitting quote:", result.error)
-        alert(`Error submitting quote: ${result.error || "Please try again."}`)
+        alert("There was an error submitting your quote request. Please try again.")
       }
     } catch (error) {
-      console.error("❌ Error submitting form:", error)
+      console.error("Error submitting form:", error)
       alert("There was an error submitting your quote request. Please try again.")
     } finally {
       setIsSubmitting(false)
@@ -682,7 +654,7 @@ export default function GetAQuote() {
 
       <h1 className="text-3xl font-bold text-center mb-8">Get a Quote</h1>
 
-      <div className="max-w-5xl mx-auto bg-white dark:bg-gray-900 shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-800">
+      <div className="max-w-5xl mx-auto bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-800">
         {/* Progress Steps */}
         <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex justify-between">
@@ -755,7 +727,7 @@ export default function GetAQuote() {
                   {serviceTypes.map((service) => (
                     <div
                       key={service.id}
-                      className={`border-2 p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 flex flex-col items-center card-hover ${
+                      className={`border-2 rounded-2xl p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 flex flex-col items-center card-hover ${
                         selectedService === service.id ? "border-brand-yellow bg-gray-50" : "border-gray-200"
                       }`}
                       onClick={() => handleServiceSelect(service.id)}
@@ -777,7 +749,7 @@ export default function GetAQuote() {
                 transition={{ duration: 0.3 }}
               >
                 <div className="flex justify-between items-center mb-6">
-                  <button onClick={handleBack} className="text-black hover:text-gray-700 flex items-center rounded-md">
+                  <button onClick={handleBack} className="text-black hover:text-gray-700 flex items-center">
                     <ArrowLeft className="h-5 w-5 mr-1" />
                     Back
                   </button>
@@ -789,7 +761,7 @@ export default function GetAQuote() {
                   {getTypeOptions().map((typeOption) => (
                     <div
                       key={typeOption.id}
-                      className={`border-2 p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 flex flex-col items-center card-hover relative ${
+                      className={`border-2 rounded-2xl p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 flex flex-col items-center card-hover relative ${
                         selectedType === typeOption.id ? "border-brand-yellow bg-gray-50" : "border-gray-200"
                       }`}
                       onClick={() => handleTypeSelect(typeOption.id)}
@@ -797,7 +769,7 @@ export default function GetAQuote() {
                       <div className="w-24 h-24 mb-4 text-gray-700">{typeOption.icon}</div>
                       <h3 className="font-medium text-center mb-2">{typeOption.name}</h3>
                       <button
-                        className="text-gray-500 hover:text-black mt-2 rounded-md"
+                        className="text-gray-500 hover:text-black mt-2"
                         onClick={(e) => {
                           e.stopPropagation()
                           toggleTooltip(typeOption.id)
@@ -830,7 +802,7 @@ export default function GetAQuote() {
                 transition={{ duration: 0.3 }}
               >
                 <div className="flex justify-between items-center mb-6">
-                  <button onClick={handleBack} className="text-black hover:text-gray-700 flex items-center rounded-md">
+                  <button onClick={handleBack} className="text-black hover:text-gray-700 flex items-center">
                     <ArrowLeft className="h-5 w-5 mr-1" />
                     Back
                   </button>
@@ -842,7 +814,7 @@ export default function GetAQuote() {
                   {getAvailableBrands().map((brand) => (
                     <div
                       key={brand.id}
-                      className={`border-2 p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 flex flex-col items-center card-hover relative ${
+                      className={`border-2 rounded-2xl p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 flex flex-col items-center card-hover relative ${
                         selectedBrand === brand.id
                           ? "border-brand-yellow bg-gray-50"
                           : brand.recommended
@@ -886,7 +858,7 @@ export default function GetAQuote() {
                 transition={{ duration: 0.3 }}
               >
                 <div className="flex justify-between items-center mb-6">
-                  <button onClick={handleBack} className="text-black hover:text-gray-700 flex items-center rounded-md">
+                  <button onClick={handleBack} className="text-black hover:text-gray-700 flex items-center">
                     <ArrowLeft className="h-5 w-5 mr-1" />
                     Back
                   </button>
@@ -898,7 +870,7 @@ export default function GetAQuote() {
                   {getModelOptions().map((model) => (
                     <div
                       key={model.id}
-                      className={`border-2 p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 flex flex-col items-center card-hover ${
+                      className={`border-2 rounded-2xl p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 flex flex-col items-center card-hover ${
                         selectedModel === model.id ? "border-brand-yellow bg-gray-50" : "border-gray-200"
                       }`}
                       onClick={() => handleModelSelect(model.id)}
@@ -925,7 +897,7 @@ export default function GetAQuote() {
                 transition={{ duration: 0.3 }}
               >
                 <div className="flex justify-between items-center mb-6">
-                  <button onClick={handleBack} className="text-black hover:text-gray-700 flex items-center rounded-md">
+                  <button onClick={handleBack} className="text-black hover:text-gray-700 flex items-center">
                     <ArrowLeft className="h-5 w-5 mr-1" />
                     Back
                   </button>
@@ -962,7 +934,7 @@ export default function GetAQuote() {
                   )}
                 </div>
 
-                <form onSubmit={handleSubmit} className="bg-white p-5 border border-gray-200">
+                <form onSubmit={handleSubmit} className="bg-white p-5 rounded-lg border border-gray-200">
                   <h3 className="font-semibold text-lg mb-4">Contact Information</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
                     <div>
@@ -1041,7 +1013,7 @@ export default function GetAQuote() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="btn-primary px-8 py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed rounded-md"
+                      className="btn-primary px-8 py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSubmitting ? "Submitting..." : "Submit Quote Request"}
                     </button>

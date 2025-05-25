@@ -29,7 +29,7 @@ export default function AboutUsPage() {
           </div>
         </section>
 
-        <section className="container mx-auto px-4 py-20">
+        <section className="container mx-auto px-4 py-16">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl font-bold mb-6">Who We Are</h2>
@@ -58,7 +58,9 @@ export default function AboutUsPage() {
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-brand-yellow mr-2 mt-1 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300"></span>
+                    <span className="text-gray-700 dark:text-gray-300">
+                
+                    </span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-brand-yellow mr-2 mt-1 flex-shrink-0" />
@@ -91,13 +93,16 @@ export default function AboutUsPage() {
                     className="object-contain"
                   />
                 </div>
-                <div className="h-24 bg-white dark:bg-gray-800 rounded-lg shadow-sm flex items-center justify-center p-4"></div>
+                <div className="h-24 bg-white dark:bg-gray-800 rounded-lg shadow-sm flex items-center justify-center p-4">
+      
+                 
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="bg-gray-100 dark:bg-gray-900 py-20 mt-8">
+        <section className="bg-gray-100 dark:bg-gray-900 py-16">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold mb-12 text-center">Why Choose Us</h2>
             <div className="grid md:grid-cols-3 gap-8">
@@ -149,12 +154,8 @@ export default function AboutUsPage() {
           </div>
         </section>
 
-        <div className="container mx-auto px-4">
-          <div className="border-b border-gray-200 dark:border-gray-700 my-4"></div>
-        </div>
-
-        <section className="container mx-auto px-4 py-20 mb-8">
-          <div className="text-center mb-16">
+        <section className="container mx-auto px-4 py-16">
+          <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Our Expertise</h2>
             <p className="text-lg text-gray-700 dark:text-gray-300 max-w-3xl mx-auto">
               We offer a comprehensive range of plumbing and heating services at competitive prices. Our team
@@ -168,6 +169,116 @@ export default function AboutUsPage() {
                 Explore Our Services
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="relative py-20 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-black to-gray-800 opacity-90"></div>
+          <div className="absolute inset-0 bg-[url('/placeholder.svg?height=600&width=1200&text=Plumbing+Background')] bg-cover bg-center mix-blend-overlay"></div>
+
+          <div className="container relative mx-auto px-4 text-center z-10">
+            <div className="max-w-3xl mx-auto bg-white/10 backdrop-blur-sm p-10 rounded-xl border border-white/20 shadow-2xl">
+              <div className="inline-block mb-6 p-3 bg-brand-yellow rounded-full">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-black"
+                >
+                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <path d="M16 13H8"></path>
+                  <path d="M16 17H8"></path>
+                  <path d="M10 9H8"></path>
+                </svg>
+              </div>
+              <h2 className="text-4xl font-bold mb-4 text-white">Ready to Work With Us?</h2>
+              <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
+                Contact us today for a free, no-obligation quote on your plumbing or heating project.
+              </p>
+              <Link
+                href="/get-a-quote"
+                className="inline-flex items-center justify-center px-8 py-4 text-lg font-medium bg-brand-yellow text-black hover:bg-opacity-90 transition-all duration-300 transform hover:-translate-y-1 rounded-md shadow-lg hover:shadow-xl"
+              >
+                Get a Free Quote
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="ml-2 h-5 w-5"
+                >
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </Link>
+              <div className="mt-8 flex justify-center space-x-6">
+                <div className="flex items-center text-white/70">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="mr-2"
+                  >
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                  <span>Fast Response</span>
+                </div>
+                <div className="flex items-center text-white/70">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="mr-2"
+                  >
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  </svg>
+                  <span>Guaranteed Work</span>
+                </div>
+                <div className="flex items-center text-white/70">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="mr-2"
+                  >
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  <span>24/7 Support</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>

@@ -89,7 +89,7 @@ export function MobileMenu() {
                 </button>
 
                 {isServicesExpanded && (
-                  <div className="space-y-3 py-2 bg-gray-50 dark:bg-gray-800">
+                  <div className="space-y-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-xl">
                     {serviceLinks.map((service) => (
                       <Link
                         key={service.href}

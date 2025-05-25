@@ -84,13 +84,13 @@ export function Navigation() {
         </button>
 
         {isServicesOpen && (
-          <div className="absolute left-0 mt-2 w-64 shadow-xl bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50 border border-gray-200 dark:border-gray-700 backdrop-blur-sm">
+          <div className="absolute left-0 mt-2 w-64 rounded-xl shadow-xl bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50 border border-gray-200 dark:border-gray-700 backdrop-blur-sm">
             <div className="py-2" role="menu" aria-orientation="vertical">
               {serviceLinks.map((service) => (
                 <Link
                   key={service.href}
                   href={service.href}
-                  className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-brand-yellow/10 dark:hover:bg-brand-yellow/20 hover:text-brand-yellow transition-all duration-200 mx-2 my-1"
+                  className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-brand-yellow/10 dark:hover:bg-brand-yellow/20 hover:text-brand-yellow transition-all duration-200 rounded-lg mx-2 my-1"
                   role="menuitem"
                   onClick={() => setIsServicesOpen(false)}
                 >
@@ -100,7 +100,7 @@ export function Navigation() {
               <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
               <Link
                 href="/services"
-                className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-brand-yellow/10 dark:hover:bg-brand-yellow/20 hover:text-brand-yellow transition-all duration-200 mx-2 my-1 font-medium"
+                className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-brand-yellow/10 dark:hover:bg-brand-yellow/20 hover:text-brand-yellow transition-all duration-200 rounded-lg mx-2 my-1 font-medium"
                 role="menuitem"
                 onClick={() => setIsServicesOpen(false)}
               >

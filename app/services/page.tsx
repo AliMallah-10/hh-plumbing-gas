@@ -83,7 +83,7 @@ export default function ServicesPage() {
             </p>
             <Link
               href="/get-a-quote"
-              className="inline-flex items-center justify-center px-6 py-3 text-base font-medium bg-brand-yellow text-black hover:bg-opacity-90 transition-colors rounded-md"
+              className="inline-flex items-center justify-center px-6 py-3 text-base font-medium bg-brand-yellow text-black hover:bg-opacity-90 transition-colors"
             >
               Get a Free Quote
               <ArrowRight className="ml-2 h-4 w-4" />
