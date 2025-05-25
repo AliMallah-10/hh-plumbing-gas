@@ -145,23 +145,27 @@ export class QuoteService {
     }
   }
 
-  // Update quote status
-  static async updateQuoteStatus(id: string, status: Quote["status"]): Promise<{ success: boolean; error?: string }> {
-    try {
-      const { error } = await supabase.from("quotes").update({ status }).eq("id", id)
+  // // Update quote status
+static async updateQuoteStatus(id: string, status: Quote["status"]): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
+      .from("quotes")
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq("id", id)
 
-      if (error) {
-        console.error("❌ Supabase error updating quote status:", error)
-        return { success: false, error: error.message }
-      }
-
-      console.log("✅ Quote status updated successfully:", id, status)
-      return { success: true }
-    } catch (error) {
-      console.error("❌ Error updating quote status:", error)
-      return { success: false, error: "Failed to update quote status" }
+    if (error) {
+      console.error("❌ Supabase error updating quote status:", error)
+      return { success: false, error: error.message }
     }
+
+    console.log("✅ Quote status updated successfully:", id, status)
+    return { success: true }
+  } catch (error) {
+    console.error("❌ Error updating quote status:", error)
+    return { success: false, error: "Failed to update quote status" }
   }
+}
+
 
   // Delete quote
   static async deleteQuote(id: string): Promise<{ success: boolean; error?: string }> {

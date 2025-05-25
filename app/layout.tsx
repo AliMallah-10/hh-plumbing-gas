@@ -1,15 +1,18 @@
 import type React from "react"
-import type { Metadata } from "next"
+import "@/app/globals.css"
 import { Inter } from "next/font/google"
-import "./globals.css"
-import { ErrorBoundary } from "@/components/error-boundary"
+import { ThemeProvider } from "@/components/theme-provider"
+import { EmployeeTab } from "./components/employee-tab"
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+})
 
-export const metadata: Metadata = {
-  title: "HH Plumbing & Gas - Professional Plumbing Services",
+export const metadata = {
+  title: "HH Plumbing and Gas | Professional Plumbing Services",
   description:
-    "Professional plumbing and gas services with timeless reliability, exceptional quality, and unmatched expertise.",
+    "HH Plumbing and Gas provides professional plumbing, heating and gas services including boiler installations, heat pump installations, bathroom installations and emergency repairs.",
     generator: 'v0.dev'
 }
 
@@ -19,9 +22,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ErrorBoundary>{children}</ErrorBoundary>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+          {children}
+          <EmployeeTab />
+        </ThemeProvider>
       </body>
     </html>
   )
