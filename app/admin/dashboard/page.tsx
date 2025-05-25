@@ -742,12 +742,7 @@ export default function AdminDashboardPage() {
 
       const data = [
         quote.id,
-        new Date(quote.updated_at).toLocaleDateString("en-UK", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-}),
-
+        new Date(quote.date).toLocaleString(),
         quote.customer.name,
         quote.customer.email,
         quote.customer.phone,
