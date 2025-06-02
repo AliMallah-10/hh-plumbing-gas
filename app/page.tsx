@@ -3,7 +3,7 @@ import Image from "next/image"
 import { ArrowRight } from "lucide-react"
 import { Header } from "./components/header"
 import { TopBar } from "./components/top-bar"
-import { EmployeeTab } from "./components/employee-tab"
+
 
 export default function Home() {
   return (
@@ -92,7 +92,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="bg-black text-white py-16 dark:bg-gray-900">
+        <section className="  py-16 ">
           <div className="container mx-auto px-4">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div className="space-y-6">
@@ -225,7 +225,7 @@ export default function Home() {
         </div>
       </footer>
 
-      <EmployeeTab />
+   
     </div>
   )
 }
