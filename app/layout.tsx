@@ -24,11 +24,11 @@ export const metadata: Metadata = {
     title: "HH Plumbing and Gas | Professional Plumbing Services",
     description:
       "HH Plumbing and Gas provides professional plumbing, heating and gas services including boiler installations, heat pump installations, bathroom installations and emergency repairs.",
-    url: "https://hh-plumbing-and-gas.com",
+    url: "https://hh-plumbing-gas.vercel.app",
     siteName: "HH Plumbing and Gas",
     images: [
       {
-        url: "https://hh-plumbing-and-gas.com/images/og-image.png",
+        url: "https://hh-plumbing-gas.vercel.app/images/HH-plumbing.png",
         width: 680,
         height: 680,
         alt: "HH Plumbing and Gas Services Preview",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     title: "HH Plumbing and Gas | Professional Plumbing Services",
     description:
       "HH Plumbing and Gas provides professional plumbing, heating and gas services including boiler installations, heat pump installations, bathroom installations and emergency repairs.",
-    images: ["https://hh-plumbing-and-gas.com/images/og-image.png"],
+    images: ["https://hh-plumbing-gas.vercel.app/images/HH-plumbing.png"],
     creator: "@hhplumbinggas",
   },
 };
