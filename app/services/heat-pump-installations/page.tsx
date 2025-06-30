@@ -11,9 +11,9 @@ export default function HeatPumpInstallationsPage() {
       <Header />
 
       <main className="flex-1">
-        <section className="relative h-[300px] md:h-[400px] overflow-hidden">
+        <section className="relative h-[300px] md:h-[450px] overflow-hidden">
           <Image
-            src="/placeholder.svg?height=400&width=1200&text=Heat+Pump+Installations"
+            src="/images/Heat-pumps-scaled.jpg?height=400&width=1200&text=Heat+Pump+Installations"
             alt="Heat Pump Installations"
             fill
             className="object-cover"

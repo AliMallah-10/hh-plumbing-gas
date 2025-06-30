@@ -11,7 +11,7 @@ export default function EmergencyRepairsPage() {
       <Header />
 
       <main className="flex-1">
-        <section className="relative h-[300px] md:h-[400px] overflow-hidden">
+        <section className="relative h-[300px] md:h-[450px] overflow-hidden">
           <Image
             src="/placeholder.svg?height=400&width=1200&text=Emergency+Plumbing+Repairs"
             alt="Emergency Plumbing Repairs"

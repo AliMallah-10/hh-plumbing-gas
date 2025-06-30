@@ -10,28 +10,28 @@ export default function ServicesPage() {
       title: "Boiler Installation",
       description:
         "Professional installation of high-efficiency boilers from leading brands including Worcester Bosch, Vaillant, Baxi, Glow Worm, and Main.",
-      image: "/placeholder.svg?height=300&width=400&text=Boiler+Installation",
+      image: "/images/Boilerinstallation.jpg",
       link: "/services/boiler-installations",
     },
     {
       title: "Heat Pump Installation",
       description:
         "Expert installation of energy-efficient air and ground source heat pump systems from Vaillant, Mitsubishi, Daikin, Baxi, and Bosch.",
-      image: "/placeholder.svg?height=300&width=400&text=Heat+Pump+Installation",
+      image: "/images/Heat-pumps-scaled.jpg",
       link: "/services/heat-pump-installations",
     },
     {
       title: "Underfloor Heating",
       description:
         "Luxurious and efficient underfloor heating systems for optimal comfort and energy savings, available in both wet and electric systems.",
-      image: "/placeholder.svg?height=300&width=400&text=Underfloor+Heating",
+      image: "/images/underfloor-heating.jpg",
       link: "/services/underfloor-heating-installation",
     },
     {
       title: "Cylinder Installation",
       description:
         "Professional installation of direct and indirect hot water cylinders from Vaillant, Megaflo, and Gledhill for efficient hot water supply.",
-      image: "/placeholder.svg?height=300&width=400&text=Cylinder+Installation",
+      image: "/images/cylinder-water-heater-installation.jpeg",
       link: "/services/cylinder-installation",
     },
   ]

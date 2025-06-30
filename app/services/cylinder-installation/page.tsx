@@ -11,9 +11,9 @@ export default function CylinderInstallationPage() {
       <Header />
 
       <main className="flex-1">
-        <section className="relative h-[300px] md:h-[400px] overflow-hidden">
+        <section className="relative h-[300px] md:h-[450px] overflow-hidden">
           <Image
-            src="/placeholder.svg?height=400&width=1200&text=Cylinder+Installation"
+            src="/images/cylinder-water-heater-installation.jpeg?height=400&width=1200&text=Cylinder+Installation"
             alt="Cylinder Installation"
             fill
             className="object-cover"
@@ -119,7 +119,7 @@ export default function CylinderInstallationPage() {
           </div>
         </section>
 
-        <section className="bg-gray-100 dark:bg-gray-900 py-16">
+        <section className="  py-16">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold mb-12 text-center">Our Cylinder Installation Process</h2>
             <div className="grid md:grid-cols-4 gap-8">
