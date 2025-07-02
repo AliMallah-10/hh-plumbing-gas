@@ -1,9 +1,8 @@
-import Link from "next/link"
-import Image from "next/image"
-import { ArrowRight } from "lucide-react"
-import { Header } from "./components/header"
-import { TopBar } from "./components/top-bar"
-
+import Link from "next/link";
+import Image from "next/image";
+import { ArrowRight } from "lucide-react";
+import { Header } from "./components/header";
+import { TopBar } from "./components/top-bar";
 
 export default function Home() {
   return (
@@ -20,20 +19,37 @@ export default function Home() {
               </h1>
               <p className="text-xl md:text-2xl text-foreground/80 max-w-lg leading-relaxed font-light mt-8 text-balance">
                 Professional plumbing and gas services with
-                <span className="font-medium text-brand-yellow"> timeless reliability</span>,
-                <span className="font-medium text-brand-yellow"> exceptional quality</span>, and
-                <span className="font-medium text-brand-yellow"> unmatched expertise</span>.
+                <span className="font-medium text-brand-yellow">
+                  {" "}
+                  timeless reliability
+                </span>
+                ,
+                <span className="font-medium text-brand-yellow">
+                  {" "}
+                  exceptional quality
+                </span>
+                , and
+                <span className="font-medium text-brand-yellow">
+                  {" "}
+                  unmatched expertise
+                </span>
+                .
               </p>
             </div>
             <div className="pt-4">
-              <Link href="/get-a-quote" className="btn-primary text-lg px-10 py-4 mt-8">
+              <Link
+                href="/get-a-quote"
+                className="btn-primary text-lg px-10 py-4 mt-8"
+              >
                 Get a quote
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </div>
 
             <div className="pt-8">
-              <p className="text-sm text-muted-foreground mb-3">Approved installer for leading brands:</p>
+              <p className="text-sm text-muted-foreground mb-3">
+                Approved installer for leading brands:
+              </p>
               <div className="grid grid-cols-3 md:grid-cols-6 gap-4 items-center">
                 <div className="h-16 w-full relative bg-white dark:bg-gray-800 rounded-xl p-3 card-hover border border-gray-200 dark:border-gray-700">
                   <Image
@@ -68,7 +84,12 @@ export default function Home() {
                   />
                 </div>
                 <div className="h-16 w-full relative bg-white dark:bg-gray-800 rounded-xl p-3 card-hover border border-gray-200 dark:border-gray-700">
-                  <Image src="/images/baxi-logo.png" alt="Baxi Approved Installer" fill className="object-contain" />
+                  <Image
+                    src="/images/baxi-logo.png"
+                    alt="Baxi Approved Installer"
+                    fill
+                    className="object-contain"
+                  />
                 </div>
                 <div className="h-16 w-full relative bg-white dark:bg-gray-800 rounded-xl p-3 card-hover border border-gray-200 dark:border-gray-700">
                   <Image
@@ -98,9 +119,10 @@ export default function Home() {
               <div className="space-y-6">
                 <h2 className="text-3xl font-bold">Quality Services</h2>
                 <p className="text-lg">
-                  HH Plumbing and Gas provides exceptional plumbing and gas services for residential and commercial
-                  properties. With attention to detail and commitment to quality, we ensure every project meets the
-                  highest standards.
+                  HH Plumbing and Gas provides exceptional plumbing and gas
+                  services for residential and commercial properties. With
+                  attention to detail and commitment to quality, we ensure every
+                  project meets the highest standards.
                 </p>
                 <ul className="space-y-3">
                   {[
@@ -119,7 +141,7 @@ export default function Home() {
                 <div className="pt-4">
                   <Link
                     href="/services"
-                    className="inline-flex items-center text-base font-medium border-b border-brand-yellow pb-1 text-brand-yellow hover:border-white hover:text-white transition-colors"
+                    className="inline-flex items-center text-base font-medium border-b border-brand-yellow pb-1 text-brand-yellow hover:border-black hover:text-black hover:dark:border-white hover:dark:text-white transition-colors"
                   >
                     View all services
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -135,7 +157,9 @@ export default function Home() {
                     className="object-contain"
                   />
                 </div>
-                <p className="text-white text-center mt-4 font-medium">Fully certified and Gas Safe registered</p>
+                <p className="text-white text-center mt-4 font-medium">
+                  Fully certified and Gas Safe registered
+                </p>
               </div>
             </div>
           </div>
@@ -148,19 +172,26 @@ export default function Home() {
             <div>
               <h3 className="font-bold text-lg mb-4">HH Plumbing and Gas</h3>
               <p className="text-sm text-gray-300 max-w-xs">
-                Professional plumbing and gas services with a commitment to quality and customer satisfaction.
+                Professional plumbing and gas services with a commitment to
+                quality and customer satisfaction.
               </p>
             </div>
             <div>
               <h4 className="font-bold mb-4">Services</h4>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link href="/services/boiler-installations" className="text-gray-300 hover:text-brand-yellow">
+                  <Link
+                    href="/services/boiler-installations"
+                    className="text-gray-300 hover:text-brand-yellow"
+                  >
                     Boiler Installations
                   </Link>
                 </li>
                 <li>
-                  <Link href="/services/heat-pump-installations" className="text-gray-300 hover:text-brand-yellow">
+                  <Link
+                    href="/services/heat-pump-installations"
+                    className="text-gray-300 hover:text-brand-yellow"
+                  >
                     Heat Pump Installations
                   </Link>
                 </li>
@@ -173,7 +204,10 @@ export default function Home() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/services/cylinder-installation" className="text-gray-300 hover:text-brand-yellow">
+                  <Link
+                    href="/services/cylinder-installation"
+                    className="text-gray-300 hover:text-brand-yellow"
+                  >
                     Cylinder Installation
                   </Link>
                 </li>
@@ -183,17 +217,26 @@ export default function Home() {
               <h4 className="font-bold mb-4">Company</h4>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link href="/about-us" className="text-gray-300 hover:text-brand-yellow">
+                  <Link
+                    href="/about-us"
+                    className="text-gray-300 hover:text-brand-yellow"
+                  >
                     About Us
                   </Link>
                 </li>
                 <li>
-                  <Link href="/get-a-quote" className="text-gray-300 hover:text-brand-yellow">
+                  <Link
+                    href="/get-a-quote"
+                    className="text-gray-300 hover:text-brand-yellow"
+                  >
                     Get a Quote
                   </Link>
                 </li>
                 <li>
-                  <Link href="/contact-us" className="text-gray-300 hover:text-brand-yellow">
+                  <Link
+                    href="/contact-us"
+                    className="text-gray-300 hover:text-brand-yellow"
+                  >
                     Contact Us
                   </Link>
                 </li>
@@ -212,7 +255,10 @@ export default function Home() {
                   </a>
                 </p>
                 <p>
-                  <a href="mailto:info@hhplumbing.com" className="hover:text-brand-yellow">
+                  <a
+                    href="mailto:info@hhplumbing.com"
+                    className="hover:text-brand-yellow"
+                  >
                     info@hhplumbing.com
                   </a>
                 </p>
@@ -220,12 +266,13 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-12 pt-6 text-sm text-gray-400">
-            <p>© {new Date().getFullYear()} HH Plumbing and Gas. All rights reserved.</p>
+            <p>
+              © {new Date().getFullYear()} HH Plumbing and Gas. All rights
+              reserved.
+            </p>
           </div>
         </div>
       </footer>
-
-   
     </div>
-  )
+  );
 }
